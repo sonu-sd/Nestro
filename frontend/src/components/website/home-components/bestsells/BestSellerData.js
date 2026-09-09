@@ -1,0 +1,38 @@
+export const bestSellerData = [
+  {
+    id: 1,
+    title: "Ember Velvet 3-Seater",
+    category: "Sofas",
+    rating: 5,
+    price: "₹89,000",
+    badge: "SALE",
+    Imgpath: "https://images.unsplash.com/photo-1758448511322-8bfc73daf606?auto=format&fit=crop&w=500&q=80",
+  },
+  {
+    id: 2,
+    title: "Nordic Oak Bookcase",
+    category: "Storage",
+    rating: 4,
+    price: "₹42,500",
+    badge: "",
+    Imgpath: "https://images.unsplash.com/photo-1593071045469-a45708d54b3d?auto=format&fit=crop&w=500&q=80",
+  },
+  {
+    id: 3,
+    title: "Travertine Side Table",
+    category: "Tables",
+    rating: 5,
+    price: "₹28,000",
+    badge: "",
+    Imgpath: "https://images.unsplash.com/photo-1519643381401-22c77e60520e?auto=format&fit=crop&w=500&q=80",
+  },
+  {
+    id: 4,
+    title: "Aura Bouclé Armchair",
+    category: "Chairs",
+    rating: 5,
+    price: "₹54,000",
+    badge: "HOT",
+    Imgpath: "https://images.unsplash.com/photo-1758448511322-8bfc73daf606?auto=format&fit=crop&w=500&q=80",
+  },
+];
