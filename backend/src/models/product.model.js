@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-
 const productSchema = new mongoose.Schema(
   {
     // Basic Information
@@ -19,11 +18,13 @@ const productSchema = new mongoose.Schema(
     shortDescription: {
       type: String,
       trim: true,
+      maxlength: 300,
     },
 
     description: {
       type: String,
       required: true,
+      trim: true,
     },
 
     // Category
@@ -47,7 +48,8 @@ const productSchema = new mongoose.Schema(
 
     salePrice: {
       type: Number,
-      default: 200,
+      required: true,
+      min: 0,
     },
 
     discount: {
@@ -66,6 +68,7 @@ const productSchema = new mongoose.Schema(
     sold: {
       type: Number,
       default: 0,
+      min: 0,
     },
 
     // Images
@@ -73,12 +76,21 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
+    thumbnailPublicId: {
+      type: String,
+      default: "",
+      select: false,
+    },
     images: [
       {
         type: String,
       },
     ],
+    imagePublicIds: {
+      type: [String],
+      default: [],
+      select: false,
+    },
 
     // Furniture Details
     material: {
@@ -95,7 +107,7 @@ const productSchema = new mongoose.Schema(
         "Fabric",
         "Leather",
       ],
-      required:"true"
+      required:true
       
     },
 

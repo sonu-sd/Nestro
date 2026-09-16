@@ -48,6 +48,12 @@ server.use((req, res) => {
 
 server.use((error, req, res, next) => {
     console.error(error);
+    if (error.name === "MulterError") {
+        const message = error.code === "LIMIT_FILE_SIZE"
+            ? "Image must be 5 MB or smaller"
+            : "Only JPG, PNG, and WebP images are allowed";
+        return res.status(400).json({ success: false, message });
+    }
     res.status(500).json({ success: false, message: "Internal server error" });
 });
 

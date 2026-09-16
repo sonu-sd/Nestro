@@ -3,17 +3,23 @@ import mongoose from "mongoose";
 const categoryschema = new mongoose.Schema({
     name: {
         type: String,
+        required:true,
         unique: true,
-        minlength: 4
+        minlength: 2,
+        trim:true
     },
     slug: {
         type: String,
-        unique: true
+        unique: true,
+        required:true,
+        lowercase:true,
+        trim:true
     },
     image: {
         type: String,
         default:""
     },
+    imagePublicId:{ type:String, default:"", select:false },
     status: {
         type: Boolean,
         default: true
