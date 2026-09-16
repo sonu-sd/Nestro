@@ -9,24 +9,19 @@ export default function Layout({ children }) {
       <Hero />
 
       <div className="m-4 flex min-w-0 flex-col gap-4 sm:m-6 lg:flex-row lg:gap-5">
+
         {/* Left Sidebar */}
-        <details className="group w-full shrink-0 rounded-2xl bg-white lg:block lg:w-[280px]" open={false}>
-          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between rounded-2xl border border-[#E8DDD3] px-5 text-sm font-semibold text-[#1e1e1e] lg:hidden">
-            Filters
-            <span className="transition group-open:rotate-180">⌄</span>
-          </summary>
-          <div className="hidden group-open:block lg:block">
-            <Left />
-          </div>
-        </details>
+        <aside className="w-full shrink-0 lg:sticky lg:top-20 lg:block lg:w-[280px]">
+          <Left />
+        </aside>
 
         {/* Right Content */}
-        <div className="min-w-0 flex-1">
+        <main className="min-w-0 flex-1">
           <Righttop />
 
           {children}
+        </main>
 
-        </div>
       </div>
     </div>
   );

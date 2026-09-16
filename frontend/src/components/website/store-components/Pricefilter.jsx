@@ -5,8 +5,8 @@ import React, { use, useState } from 'react'
 
 export default function Pricefilter() {
 
-    const [minPrice, setminPrice] = useState(null);
-    const [maxPrice, setmaxPrice] = useState(null);
+    const [minPrice, setminPrice] = useState("");
+    const [maxPrice, setmaxPrice] = useState("");
 
     const searchParams = useSearchParams();
     const router = useRouter();

@@ -1,7 +1,10 @@
-import { categoryData } from "./Categorydata";
 import CategoryCard from "./CategoryCard";
+import Link from "next/link";
+import { fetchCategory } from "@/api/api";
 
-export default function CategorySection() {
+export default async function CategorySection() {
+  const category = await fetchCategory()
+
   return (
     <section className="px-4 py-8 sm:px-6 lg:px-8">
       <p className="text-[11px] uppercase tracking-[4px] text-[#8b5e3c]">
@@ -12,12 +15,20 @@ export default function CategorySection() {
         Shop by Category
       </h2>
 
-      <div className="-mx-4 mt-5 flex gap-5 overflow-x-auto px-4 pb-3 sm:mx-0 sm:grid sm:grid-cols-4 sm:px-0 md:grid-cols-7 lg:gap-6">
-        {categoryData.map((item) => (
-          <CategoryCard key={item.id} 
-          {...item} />
+
+
+      <div className="mt-5 flex gap-0 overflow-x-auto gap-2 pb-2 sm:flex-wrap sm:overflow-visible">
+        {category.data?.map((item) => (
+          <Link
+            href={`/store?category=${encodeURIComponent(item.slug)}`}
+            key={item._id}
+            className="w-[100px] shrink-0 sm:w-[110px] md:w-[120px]"
+          >
+            <CategoryCard {...item} />
+          </Link>
         ))}
       </div>
+
     </section>
   );
 }

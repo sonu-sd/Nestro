@@ -4,7 +4,7 @@ import {
     materialData,
     availabilityData,
 } from "./leftdata";
-import { fetchCategory, fetchRoom } from '@/api/api';
+import { fetchCategory, fetchRoom, fetchProduct } from '@/api/api';
 import Stockfilter from './Stockfilter';
 import Filtersection from './Filtersection';
 import Pricefilter from './Pricefilter';
@@ -15,6 +15,33 @@ export default async function Left() {
     const category_response = await fetchCategory();
     const room_response = await fetchRoom();
 
+    const categoriesWithCount = await Promise.all(
+        category_response.data.map(async (item) => {
+            const response = await fetchProduct({
+                category: item.slug,
+                page: 1
+            });
+
+            return {
+                ...item,
+                count: response?.total || 0
+            };
+        })
+    );
+
+    const oomsWithCountr = await Promise.all(
+        room_response.data.map(async (item) => {
+            const response = await fetchProduct({
+                room: item.slug,
+                page: 1
+            });
+
+            return {
+                ...item,
+                count: response?.total || 0
+            };
+        })
+    );
 
     return (
         <div className="w-full rounded-2xl border bg-white p-5 sm:p-6 lg:w-[280px] lg:sticky lg:top-20">
@@ -26,7 +53,7 @@ export default async function Left() {
                 title="category"
                 queryKey="category"
                 readOnly
-                data={category_response.data}
+                data={categoriesWithCount}
             />
 
             {/* Room */}
@@ -35,7 +62,7 @@ export default async function Left() {
                 title="Room-type"
                 queryKey="room"
                 readOnly
-                data={room_response.data}
+                data={oomsWithCountr}
             />
 
             {/* price */}
