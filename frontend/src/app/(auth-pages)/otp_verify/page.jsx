@@ -1,11 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { client } from "@/utils/helper";
 
 export default function OtpVerifyPage() {
+  return (
+    <Suspense fallback={<OtpVerifyFallback />}>
+      <OtpVerifyContent />
+    </Suspense>
+  );
+}
+
+function OtpVerifyContent() {
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -17,23 +25,23 @@ export default function OtpVerifyPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [timer, setTimer] = useState(60);
-  const [canResend, setCanResend] = useState(false);
 
   const inputRefs = useRef([]);
 
   // OTP timer
   useEffect(() => {
     if (timer <= 0) {
-      setCanResend(true);
       return;
     }
 
     const interval = setInterval(() => {
-      setTimer((prev) => prev - 1);
+      setTimer((prev) => Math.max(prev - 1, 0));
     }, 1000);
 
     return () => clearInterval(interval);
   }, [timer]);
+
+  const canResend = timer <= 0;
 
   // Handle OTP input
   const handleChange = (index, value) => {
@@ -177,7 +185,6 @@ export default function OtpVerifyPage() {
 
       setOtp(["", "", "", "", "", ""]);
       setTimer(60);
-      setCanResend(false);
 
       inputRefs.current[0]?.focus();
 
@@ -312,6 +319,14 @@ export default function OtpVerifyPage() {
         </p>
 
       </div>
+    </main>
+  );
+}
+
+function OtpVerifyFallback() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
+      <p className="text-sm text-gray-500">Loading verification page...</p>
     </main>
   );
 }

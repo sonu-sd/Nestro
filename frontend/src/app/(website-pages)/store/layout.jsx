@@ -1,4 +1,4 @@
-import React from "react";
+import { Suspense } from "react";
 import Hero from "@/components/website/store-components/Hero";
 import Left from "@/components/website/store-components/Left";
 import Righttop from "@/components/website/store-components/Righttop";
@@ -12,14 +12,20 @@ export default function Layout({ children }) {
 
         {/* Left Sidebar */}
         <aside className="w-full shrink-0 lg:sticky lg:top-20 lg:block lg:w-[280px]">
-          <Left />
+          <Suspense fallback={null}>
+            <Left />
+          </Suspense>
         </aside>
 
         {/* Right Content */}
         <main className="min-w-0 flex-1">
-          <Righttop />
+          <Suspense fallback={null}>
+            <Righttop />
+          </Suspense>
 
-          {children}
+          <Suspense fallback={null}>
+            {children}
+          </Suspense>
         </main>
 
       </div>

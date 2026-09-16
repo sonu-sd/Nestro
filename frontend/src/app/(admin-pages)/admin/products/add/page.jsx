@@ -80,13 +80,27 @@ export default function AddProduct() {
 
         const { name, value } = e.target;
 
-        setData((prev) => ({
-            ...prev,
-            [name]: value,
-            ...(name === "title" && {
-                slug: generateSlug(value),
-            }),
-        }));
+        setData((prev) => {
+            const nextData = {
+                ...prev,
+                [name]: value,
+                ...(name === "title" && {
+                    slug: generateSlug(value),
+                }),
+            };
+
+            if (name === "price" || name === "salePrice") {
+                const price = Number(nextData.price);
+                const salePrice = Number(nextData.salePrice);
+
+                nextData.discount =
+                    price > 0 && salePrice > 0
+                        ? Math.round(((price - salePrice) / price) * 100)
+                        : "";
+            }
+
+            return nextData;
+        });
     };
 
     // Thumbnail
@@ -141,28 +155,6 @@ export default function AddProduct() {
 
     };
 
-
-    useEffect(() => {
-        const price = Number(data.price);
-        const salePrice = Number(data.salePrice);
-
-        if (!price || !salePrice || price <= 0) {
-            setData((prev) => ({
-                ...prev,
-                discount: ""
-            }));
-            return;
-        }
-
-        const discount = Math.round(
-            ((price - salePrice) / price) * 100
-        );
-
-        setData((prev) => ({
-            ...prev,
-            discount
-        }));
-    }, [data.price, data.salePrice]);
 
     const inputClass =
         "w-full border border-white/10 bg-white text-black placeholder-gray-500 rounded-lg px-4 py-3 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition";

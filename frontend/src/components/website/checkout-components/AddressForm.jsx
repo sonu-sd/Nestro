@@ -1,41 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-const initialForm = {
-  fullName: "",
-  mobile: "",
-  adressLine: "",
-  city: "",
-  state: "",
-  pincode: "",
-  type: "Home",
-  isDefault: false,
-};
+const createForm = (address) => ({
+  fullName: address?.fullName || "",
+  mobile: address?.mobile || "",
+  adressLine: address?.adressLine || "",
+  city: address?.city || "",
+  state: address?.state || "",
+  pincode: address?.pincode || "",
+  type: address?.type || "Home",
+  isDefault: address?.isDefault || false,
+});
 
 export default function AddressForm({
   editingAddress,
   onSave,
   onCancel,
 }) {
-  const [form, setForm] = useState(initialForm);
-
-  useEffect(() => {
-    if (editingAddress) {
-      setForm({
-        fullName: editingAddress.fullName || "",
-        mobile: editingAddress.mobile || "",
-        adressLine: editingAddress.adressLine || "",
-        city: editingAddress.city || "",
-        state: editingAddress.state || "",
-        pincode: editingAddress.pincode || "",
-        type: editingAddress.type || "Home",
-        isDefault: editingAddress.isDefault || false,
-      });
-    } else {
-      setForm(initialForm);
-    }
-  }, [editingAddress]);
+  const [form, setForm] = useState(() => createForm(editingAddress));
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;

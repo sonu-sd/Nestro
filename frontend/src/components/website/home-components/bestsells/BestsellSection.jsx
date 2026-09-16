@@ -21,8 +21,8 @@ export default async function BestsellSection({ products }) {
 
           if (item.bestSeller) {
             return (
-              <Link href='store?bestsaller=true'>  
-                <Card key={item._id}
+              <Link key={item._id} href='store?bestsaller=true'>
+                <Card
                   {...item} />
               </Link>
             )

@@ -43,7 +43,7 @@ export default function ReviewCards() {
           </div>
           
           <p className="mt-2 text-[11px] text-[#444444] italic">
-            "{item.review}"
+            &ldquo;{item.review}&rdquo;
           </p>
 
           <div className="mt-3 flex items-center gap-3">

@@ -13,26 +13,6 @@ export default function AddressSection() {
   const [showForm, setShowForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
 
-  const getadresses = async () => {
-    try {
-      const response = await client.get("/user/addresses");
-      const addressList = response.data.addresses || [];
-
-      setAddresses(addressList);
-
-      const defaultAddress = addressList.find((address) => address.isDefault);
-      if (defaultAddress) {
-        setSelectedAddress(defaultAddress._id);
-      }
-
-    } catch (error) {
-      console.error(
-        "Address fetch error:",
-        error.response?.data || error.message
-      );
-    }
-  };
-  
   // Select address
   const handleSelect = (id) => {
     setSelectedAddress(id);
@@ -106,7 +86,30 @@ const handleSave = async (formData) => {
 };
 
   useEffect(() => {
-    getadresses();
+    let isActive = true;
+
+    const timeoutId = window.setTimeout(async () => {
+      try {
+        const response = await client.get("/user/addresses");
+        const addressList = response.data.addresses || [];
+
+        if (!isActive) return;
+
+        setAddresses(addressList);
+        const defaultAddress = addressList.find((address) => address.isDefault);
+        setSelectedAddress(defaultAddress?._id || null);
+      } catch (error) {
+        console.error(
+          "Address fetch error:",
+          error.response?.data || error.message
+        );
+      }
+    }, 0);
+
+    return () => {
+      isActive = false;
+      window.clearTimeout(timeoutId);
+    };
   }, []);
 
   return (
@@ -166,6 +169,7 @@ const handleSave = async (formData) => {
       {/* Add / Edit Form */}
       {showForm && (
         <AddressForm
+          key={editingAddress?._id || "new-address"}
           editingAddress={editingAddress}
           onSave={handleSave}
           onCancel={() => {

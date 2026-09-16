@@ -1,12 +1,16 @@
 import express from "express"
-import { Orderplace, read } from "../controllers/order.controller.js";
-import { protect } from "../middleware/auth.js";
-
 
 const router = express.Router()
 
-router.post("/create",protect,Orderplace)
-router.get("/",read)
-
+// Phase 0 safety boundary: the order controller/model are still unfinished.
+// Keep the existing URLs unavailable until the full order flow is implemented.
+router.use((_req, res) => {
+    res.set("Cache-Control", "no-store");
+    return res.status(503).json({
+        success: false,
+        code: "ORDER_SERVICE_UNAVAILABLE",
+        message: "Ordering is temporarily unavailable while checkout is being completed."
+    });
+});
 
 export default router

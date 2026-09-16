@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 
-export default function error({ error, reset }) {
+export default function ErrorPage({ error, reset }) {
   useEffect(() => {
     console.error(error);
     // Sentry.captureException(error);
@@ -38,7 +38,7 @@ export default function error({ error, reset }) {
         </h1>
 
         <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-400">
-          We're sorry, an unexpected error occurred while loading this page.
+          We&apos;re sorry, an unexpected error occurred while loading this page.
           Please try again. If the issue persists, contact support.
         </p>
 

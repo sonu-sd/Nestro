@@ -12,7 +12,7 @@ export default function Hero() {
                     </h2>
 
                     <p className='mt-3 text-[13px] leading-6 text-[#ffffff80]'>
-                        Founded in 2018, Nestro was born from a belief that beautiful furniture shouldn't be a luxury. We work
+                        Founded in 2018, Nestro was born from a belief that beautiful furniture shouldn&apos;t be a luxury. We work
                         directly with master craftsmen across India and Scandinavia to bring you pieces that are honest in material,
                         thoughtful in design, and built to outlast trends.
                     </p>

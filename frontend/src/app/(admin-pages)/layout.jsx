@@ -4,6 +4,8 @@ import Adminaside from "@/components/admin/Adminaside";
 import Header from "@/components/admin/Header";
 import { Toaster} from 'sonner'
 
+// Admin screens depend on live backend data and must not be prerendered at build time.
+export const dynamic = "force-dynamic";
 
 
 const geistSans = Geist({

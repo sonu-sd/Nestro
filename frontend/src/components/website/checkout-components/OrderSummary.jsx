@@ -24,7 +24,11 @@ export default function OrderSummary() {
   };
 
   useEffect(() => {
-    getCart();
+    const timeoutId = window.setTimeout(() => {
+      void getCart();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   const subtotal = items.reduce( (total, item) => total + (item.salePrice || item.price || 0) * item.qty,0);
