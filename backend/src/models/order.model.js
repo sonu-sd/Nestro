@@ -229,6 +229,11 @@ const orderSchema = new mongoose.Schema(
       default: null,
       trim: true,
     },
+    placedAt: {
+      type: Date,
+      default: Date.now,
+      index: true,
+    },
   },
   {
     timestamps: true,

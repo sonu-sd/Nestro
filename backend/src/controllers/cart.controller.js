@@ -1,5 +1,7 @@
 import cartModel from "../models/cart.modal.js";
 import ProductModel from "../models/product.model.js";
+import categoryModel from "../models/category.model.js";
+import roomModel from "../models/room.model.js";
 import mongoose from "mongoose";
 
 import {
@@ -49,8 +51,16 @@ export const sync = async (req, res) => {
         }
 
         // Do not keep deleted product IDs from either cart.
+        const [activeCategories, activeRooms] = await Promise.all([
+            categoryModel.find({ status: true }).select("_id"),
+            roomModel.find({ status: true }).select("_id"),
+        ]);
         const validProducts = await ProductModel.find({
             _id: { $in: [...candidateProductIds] },
+            status: true,
+            stock: true,
+            category: { $in: activeCategories.map((category) => category._id) },
+            roomType: { $in: activeRooms.map((room) => room._id) },
         }).select("_id");
 
         const validProductIds = new Set(
@@ -109,7 +119,7 @@ export const getCart = async (req, res) => {
 
         const userCart = await cartModel
             .findOne({ userId })
-            .populate("items.productId");
+            .populate({ path: "items.productId", match: { status: true, stock: true }, populate: [{ path: "category", match: { status: true } }, { path: "roomType", match: { status: true } }] });
 
         if (!userCart) {
             return res.status(200).json({
@@ -117,6 +127,12 @@ export const getCart = async (req, res) => {
                 message: "Cart is empty",
                 data: null,
             });
+        }
+
+        const availableItems = userCart.items.filter((item) => item.productId?.category && item.productId?.roomType);
+        if (availableItems.length !== userCart.items.length) {
+            userCart.items = availableItems;
+            await userCart.save();
         }
 
         return res.status(200).json({

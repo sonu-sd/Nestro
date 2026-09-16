@@ -7,7 +7,7 @@ import { client } from "@/utils/helper";
 
 
 
-export default function AddressSection() {
+export default function AddressSection({ onAddressSelect }) {
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -16,6 +16,7 @@ export default function AddressSection() {
   // Select address
   const handleSelect = (id) => {
     setSelectedAddress(id);
+    onAddressSelect?.(id);
   };
 
   // Delete address
@@ -98,6 +99,7 @@ const handleSave = async (formData) => {
         setAddresses(addressList);
         const defaultAddress = addressList.find((address) => address.isDefault);
         setSelectedAddress(defaultAddress?._id || null);
+        onAddressSelect?.(defaultAddress?._id || null);
       } catch (error) {
         console.error(
           "Address fetch error:",
@@ -110,7 +112,7 @@ const handleSave = async (formData) => {
       isActive = false;
       window.clearTimeout(timeoutId);
     };
-  }, []);
+  }, [onAddressSelect]);
 
   return (
     <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">

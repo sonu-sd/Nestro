@@ -1,19 +1,10 @@
 "use client";
 
-import { useState } from "react";
-
 export default function PaymentSection() {
-  const [paymentMethod, setPaymentMethod] = useState("upi");
 
   const payments = [
     {
-      id: "Online",
-      title: "UPI",
-      description: "Google Pay, PhonePe, Paytm and more",
-      icon: "📱",
-    },
-    {
-      id: "cod",
+      id: "COD",
       title: "Cash on Delivery",
       description: "Pay when your order arrives",
       icon: "💵",
@@ -28,7 +19,7 @@ export default function PaymentSection() {
 
       <div className="mt-5 space-y-3">
         {payments.map((payment) => {
-          const selected = paymentMethod === payment.id;
+          const selected = true;
 
           return (
             <label
@@ -44,9 +35,7 @@ export default function PaymentSection() {
                 name="payment"
                 value={payment.id}
                 checked={selected}
-                onChange={(e) =>
-                  setPaymentMethod(e.target.value)
-                }
+                readOnly
                 className="h-4 w-4 accent-green-700"
               />
 
@@ -66,45 +55,7 @@ export default function PaymentSection() {
         })}
       </div>
 
-      {paymentMethod === "card" && (
-        <div className="mt-5 rounded-lg bg-gray-50 p-4">
-          <div>
-            <label className="mb-2 block text-sm font-medium">
-              Card Number
-            </label>
-
-            <input
-              placeholder="1234 5678 9012 3456"
-              className="address-input bg-white"
-            />
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 gap-4">
-            <div>
-              <label className="mb-2 block text-sm font-medium">
-                Expiry
-              </label>
-
-              <input
-                placeholder="MM / YY"
-                className="address-input bg-white"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium">
-                CVV
-              </label>
-
-              <input
-                type="password"
-                placeholder="•••"
-                className="address-input bg-white"
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      <p className="mt-4 text-xs text-gray-500">Online payments will be available in a future update.</p>
     </section>
   );
 }

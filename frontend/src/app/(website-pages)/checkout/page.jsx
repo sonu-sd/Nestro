@@ -3,28 +3,11 @@
 import AddressSection from "@/components/website/checkout-components/AddressSection"
 import PaymentSection from "@/components/website/checkout-components/PaymentSection"
 import OrderSummary from "@/components/website/checkout-components/OrderSummary"
-import { useState, useEffect } from "react";
-import { client } from "@/utils/helper";
+import { useState } from "react";
 
 export default function CheckoutPage() {
 
-  const [user, setUser] = useState(null);
-  const [menuOpen, setMenuOpen] = useState(false);
-  useEffect(() => {
-    const getUser = async () => {
-      try {
-        const response = await client.get("/user/get-me");
-        console.log(response)
-
-        setUser(response.data.user);
-      } catch (error) {
-        console.log("User not logged in");
-        setUser(null);
-      }
-    };
-
-    getUser();
-  }, []);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
 
 
   return (
@@ -50,14 +33,14 @@ export default function CheckoutPage() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Left */}
           <div className="space-y-6 lg:col-span-2">
-            <AddressSection />
+            <AddressSection onAddressSelect={setSelectedAddressId} />
 
             <PaymentSection />
           </div>
 
           {/* Right */}
           <div>
-            <OrderSummary />
+            <OrderSummary selectedAddressId={selectedAddressId} />
           </div>
         </div>
       </main>
