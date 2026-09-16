@@ -1,17 +1,19 @@
 import express from "express";
 
-import { register,otpVerify, login,getMe,updateProfile,getAddresses,  addAddress,updateAddress,deleteAddress,setDefaultAddress,changePassword, logout,
+import { register,otpVerify,resendOtp, login,getMe,updateProfile,getAddresses,  addAddress,updateAddress,deleteAddress,setDefaultAddress,changePassword, logout,
 } from "../controllers/user.controller.js";
 
 import { protect } from "../middleware/auth.js";
+import { authRateLimit, otpRateLimit } from "../middleware/rateLimit.js";
 
 const router = express.Router();
 
 
 // Auth
-router.post("/register", register);
-router.post("/otp_verify", otpVerify);
-router.post("/login", login);
+router.post("/register", authRateLimit, register);
+router.post("/otp_verify", otpRateLimit, otpVerify);
+router.post("/resend-otp", otpRateLimit, resendOtp);
+router.post("/login", authRateLimit, login);
 router.post("/logout", logout);
 
 

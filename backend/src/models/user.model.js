@@ -11,12 +11,14 @@ const userSchema = new mongoose.Schema({
         type:String,
         required:true,
         unique:true,
-        lowercase:true
+        lowercase:true,
+        trim:true
     },
     password:{
         type:String,
         required:true,
-        minlength:6
+        minlength:8,
+        select:false
     },
     mobile:{
         type:String,
@@ -47,9 +49,22 @@ const userSchema = new mongoose.Schema({
         default:false
     },
     otp:{
-        type:String
+        type:String,
+        select:false
     },
-    otpExpire:Date,
+    otpExpire:{
+        type:Date,
+        select:false
+    },
+    otpAttempts:{
+        type:Number,
+        default:0,
+        select:false
+    },
+    otpLastSentAt:{
+        type:Date,
+        select:false
+    },
     status:{
         type:Boolean,
         default:true

@@ -24,7 +24,7 @@ const sendOtpMail = async (toEmail, otp) => {
                     </h1>
 
                     <p>
-                        This OTP is valid for <b>2 minutes</b>.
+                        This OTP is valid for <b>${process.env.OTP_TTL_MINUTES || 10} minutes</b>.
                     </p>
 
                     <p>

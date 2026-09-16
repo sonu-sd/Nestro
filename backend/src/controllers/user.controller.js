@@ -8,11 +8,48 @@ import {
     sendSuccess,
 } from "../utils/response.js";
 
-import Cryptr from "cryptr";
+import bcrypt from "bcryptjs";
 import sendOtpMail from "../utils/sendOtpmail.js";
-import jwt from "jsonwebtoken";
+import {
+    createOtp,
+    getCookieOptions,
+    getOtpExpiry,
+    hashOtp,
+    normalizeEmail,
+    signSessionToken,
+} from "../utils/auth.js";
 
-const cryptr = new Cryptr(process.env.SECRET_KEY);
+const PASSWORD_MIN_LENGTH = 8;
+const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
+const OTP_MAX_ATTEMPTS = 5;
+
+const isValidEmail = (email) => /^\S+@\S+\.\S+$/.test(email);
+
+const validateCredentials = ({ name, email, password }, requireName = false) => {
+    if ((requireName && !name?.trim()) || !email || !password) {
+        return "Please provide all required fields";
+    }
+
+    if (!isValidEmail(email)) {
+        return "Please provide a valid email address";
+    }
+
+    if (password.length < PASSWORD_MIN_LENGTH) {
+        return `Password must be at least ${PASSWORD_MIN_LENGTH} characters`;
+    }
+
+    return null;
+};
+
+const issueOtp = async (user) => {
+    const otp = createOtp();
+    user.otp = hashOtp(otp);
+    user.otpExpire = getOtpExpiry();
+    user.otpAttempts = 0;
+    user.otpLastSentAt = new Date();
+    await user.save();
+    await sendOtpMail(user.email, otp);
+};
 
 
 // ======================================================
@@ -22,27 +59,28 @@ const cryptr = new Cryptr(process.env.SECRET_KEY);
 export const register = async (req, res) => {
     try {
         const { name, email, password } = req.body;
+        const validationError = validateCredentials({ name, email, password }, true);
 
-        const user = await userModel.findOne({ email });
-
-        if (user) {
-            return sendConflict(res, "Email already exist");
+        if (validationError) {
+            return sendBadRequest(res, validationError);
         }
 
-        const encryptedpass = cryptr.encrypt(password);
+        const normalizedEmail = normalizeEmail(email);
+        const user = await userModel.findOne({ email: normalizedEmail });
 
-        const otp = Math.floor(100000 + Math.random() * 900000);
-        const otpExpire = Date.now() + 2 * 60 * 1000;
+        if (user) {
+            return sendConflict(res, "An account already exists with this email");
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 12);
 
         const newUser = await userModel.create({
-            name,
-            email,
-            password: encryptedpass,
-            otp,
-            otpExpire,
+            name: name.trim(),
+            email: normalizedEmail,
+            password: hashedPassword,
         });
 
-        await sendOtpMail(email, otp);
+        await issueOtp(newUser);
 
         return res.status(201).json({
             message: "User account create successfully",
@@ -65,27 +103,41 @@ export const otpVerify = async (req, res) => {
     try {
         const { email, otp } = req.body;
 
-        const user = await userModel.findOne({ email });
+        if (!email || !/^\d{6}$/.test(String(otp || ""))) {
+            return sendBadRequest(res, "Please provide a valid email and 6-digit OTP");
+        }
+
+        const user = await userModel
+            .findOne({ email: normalizeEmail(email) })
+            .select("+otp +otpExpire +otpAttempts +otpLastSentAt");
 
         if (!user) {
-            return sendConflict(res, "Account not registered");
+            return sendBadRequest(res, "Invalid email or OTP");
         }
 
         if (user.isVerified === true) {
             return sendBadRequest(res, "Account already verified");
         }
 
-        if (String(user.otp) !== String(otp)) {
-            return sendBadRequest(res, "Invalid OTP");
+        if (!user.otp || !user.otpExpire || user.otpExpire.getTime() < Date.now()) {
+            return sendBadRequest(res, "OTP expired");
         }
 
-        if (user.otpExpire < Date.now()) {
-            return sendBadRequest(res, "OTP expired");
+        if (user.otpAttempts >= OTP_MAX_ATTEMPTS) {
+            return sendBadRequest(res, "Too many invalid OTP attempts. Please request a new OTP");
+        }
+
+        if (hashOtp(otp) !== user.otp) {
+            user.otpAttempts += 1;
+            await user.save();
+            return sendBadRequest(res, "Invalid email or OTP");
         }
 
         user.isVerified = true;
         user.otp = undefined;
         user.otpExpire = undefined;
+        user.otpAttempts = 0;
+        user.otpLastSentAt = undefined;
 
         await user.save();
 
@@ -105,11 +157,18 @@ export const otpVerify = async (req, res) => {
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
+        const validationError = validateCredentials({ email, password });
 
-        const user = await userModel.findOne({ email });
+        if (validationError) {
+            return sendBadRequest(res, "Please provide a valid email and password");
+        }
+
+        const user = await userModel
+            .findOne({ email: normalizeEmail(email) })
+            .select("+password");
 
         if (!user) {
-            return sendNotFound(res, "User not found");
+            return sendBadRequest(res, "Invalid email or password");
         }
 
         if (!user.isVerified) {
@@ -126,32 +185,17 @@ export const login = async (req, res) => {
             );
         }
 
-        const decryptedpass = cryptr.decrypt(user.password);
+        const passwordMatches = await bcrypt.compare(password, user.password);
 
-        if (password !== decryptedpass) {
+        if (!passwordMatches) {
             return sendBadRequest(
                 res,
                 "Invalid email or password"
             );
         }
 
-        const token = jwt.sign(
-            {
-                id: user._id,
-                email: user.email,
-            },
-            process.env.JWT_SECRET,
-            {
-                expiresIn: "30d",
-            }
-        );
-
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: false,
-            sameSite: "lax",
-            maxAge: 30 * 24 * 60 * 60 * 1000,
-        });
+        const token = signSessionToken(user);
+        res.cookie("token", token, getCookieOptions());
 
         return sendSuccess(res, "Login Successfully");
 
@@ -170,7 +214,7 @@ export const getMe = async (req, res) => {
     try {
         const user = await userModel
             .findById(req.user.id)
-            .select("-password -otp -otpExpire");
+            .select("-password -otp -otpExpire -otpAttempts -otpLastSentAt");
 
         if (!user) {
             return sendNotFound(res, "User not found");
@@ -215,7 +259,7 @@ export const updateProfile = async (req, res) => {
 
         const updatedUser = await userModel
             .findById(user._id)
-            .select("-password -otp -otpExpire");
+            .select("-password -otp -otpExpire -otpAttempts -otpLastSentAt");
 
         return res.status(200).json({
             success: true,
@@ -520,30 +564,29 @@ export const changePassword = async (req, res) => {
             );
         }
 
-        if (newPassword.length < 6) {
+        if (newPassword.length < PASSWORD_MIN_LENGTH) {
             return sendBadRequest(
                 res,
-                "New password must be at least 6 characters"
+                `New password must be at least ${PASSWORD_MIN_LENGTH} characters`
             );
         }
 
-        const user = await userModel.findById(req.user.id);
+        const user = await userModel.findById(req.user.id).select("+password");
 
         if (!user) {
             return sendNotFound(res, "User not found");
         }
 
-        const decryptedPassword =
-            cryptr.decrypt(user.password);
+        const passwordMatches = await bcrypt.compare(currentPassword, user.password);
 
-        if (currentPassword !== decryptedPassword) {
+        if (!passwordMatches) {
             return sendBadRequest(
                 res,
                 "Current password is incorrect"
             );
         }
 
-        user.password = cryptr.encrypt(newPassword);
+        user.password = await bcrypt.hash(newPassword, 12);
 
         await user.save();
 
@@ -565,11 +608,7 @@ export const changePassword = async (req, res) => {
 
 export const logout = async (req, res) => {
     try {
-        res.clearCookie("token", {
-            httpOnly: true,
-            secure: false,
-            sameSite: "lax",
-        });
+        res.clearCookie("token", getCookieOptions());
 
         return sendSuccess(
             res,
@@ -579,5 +618,40 @@ export const logout = async (req, res) => {
     } catch (error) {
         console.error(error);
         return sendServerError(res);
+    }
+};
+
+// ======================================================
+// RESEND OTP
+// ======================================================
+
+export const resendOtp = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email || !isValidEmail(email)) {
+            return sendBadRequest(res, "Please provide a valid email address");
+        }
+
+        const user = await userModel
+            .findOne({ email: normalizeEmail(email) })
+            .select("+otp +otpExpire +otpAttempts +otpLastSentAt");
+
+        if (!user || user.isVerified) {
+            return sendSuccess(res, "If registration is pending, a new OTP has been sent");
+        }
+
+        const lastSent = user.otpLastSentAt?.getTime() || 0;
+        if (Date.now() - lastSent < OTP_RESEND_COOLDOWN_MS) {
+            return res.status(429).json({
+                success: false,
+                message: "Please wait one minute before requesting another OTP",
+            });
+        }
+
+        await issueOtp(user);
+        return sendSuccess(res, "A new OTP has been sent to your email");
+    } catch (error) {
+        return sendServerError(res, error);
     }
 };

@@ -39,6 +39,20 @@ const sendConflict = (res, message="Data already exists") =>{
     })
 }
 
+const sendUnauthorized = (res, message="Authentication required") =>{
+    return res.status(401).json({
+        success:false,
+        message
+    })
+}
+
+const sendForbidden = (res, message="Access denied") =>{
+    return res.status(403).json({
+        success:false,
+        message
+    })
+}
+
 //server error
 const sendServerError = (res,error) =>{
     console.error(error)
@@ -48,7 +62,7 @@ const sendServerError = (res,error) =>{
     })
 }
 
-export{sendBadRequest,sendConflict,sendCreated,sendNotFound,sendServerError,sendSuccess}
+export{sendBadRequest,sendConflict,sendCreated,sendForbidden,sendNotFound,sendServerError,sendSuccess,sendUnauthorized}
 
 
 

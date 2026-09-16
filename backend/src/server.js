@@ -17,13 +17,21 @@ const server = express();
 dotenv.config()  // .env ko load karega
 conectDb()  // MongoDB se connect karega
 
+const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:3000")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
 
 // midlewere
-server.use(cors({ origin: "http://localhost:3000", credentials: true }))
+server.use(cors({ origin: allowedOrigins, credentials: true }))
 server.use(cookieParser())
 server.use(express.json());
 server.use(express.urlencoded({extended:true}));
 
+server.get("/api/health", (req, res) => {
+    res.status(200).json({ success: true, message: "Nestro API is healthy" });
+});
 
 
 
@@ -33,6 +41,15 @@ server.use("/api/product", productRouter)
 server.use("/api/user", userRouter)
 server.use("/api/cart", cartRouter)
 server.use("/api/order",orderRouter)
+
+server.use((req, res) => {
+    res.status(404).json({ success: false, message: "Route not found" });
+});
+
+server.use((error, req, res, next) => {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+});
 
 // server run 
 const PORT = process.env.PORT

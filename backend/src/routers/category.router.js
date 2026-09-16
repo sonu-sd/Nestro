@@ -6,9 +6,9 @@ const router = express.Router()
 
 router.get("/", read);
 router.get("/:id", readById);
-router.post("/create", upload.single("image"),protect,authorized("admin","superadmin"), create);
-router.patch("/status-update/:id",protect,authorized("admin","superadmin"), updateStatus);
-router.put("/edit/:id",upload.single("image"),protect,authorized("admin","superadmin"),edit);
-router.delete("/delete/:id",protect,authorized("admin","superadmin"),deleteById)
+router.post("/create", protect,authorized("admin","superAdmin"), upload.single("image"), create);
+router.patch("/status-update/:id",protect,authorized("admin","superAdmin"), updateStatus);
+router.put("/edit/:id",protect,authorized("admin","superAdmin"),upload.single("image"),edit);
+router.delete("/delete/:id",protect,authorized("admin","superAdmin"),deleteById)
 
 export default router   
