@@ -1,7 +1,7 @@
 import React from "react";
 import AppImage from "@/components/ui/AppImage";
-import { ProductsData } from "./ProductsData";
-import ProductMiniCard from "./Productminicard";
+import HomeProductCard from "../HomeProductCard";
+import Link from "next/link";
 
 export default function Landedsection({products}) {
   
@@ -20,9 +20,9 @@ export default function Landedsection({products}) {
           </h2>
         </div>
 
-        <button className="text-sm text-[#8B5E3C] hover:underline">
+        <Link href="/store?sort=newest" className="text-sm text-[#8B5E3C] hover:underline">
           View all
-        </button>
+        </Link>
       </div>
 
       {/* Main Content */}
@@ -36,42 +36,28 @@ export default function Landedsection({products}) {
           </p>
 
           <h2 className="mt-3 text-xl font-medium leading-tight text-[#faf7fa]">
-            Scandinavian <br />
-            Dining Set
+            Thoughtful pieces <br />
+            for every room
           </h2>
 
           <p className="mt-3 text-[12px] text-white/70">
-            Ash wood + linen chairs. Set of 4.
+            Explore the latest additions to the Nestro collection.
           </p>
 
-          <h3 className="mt-3 text-lg font-semibold text-[#d6bfa7]">
-            ₹1,24,000
-          </h3>
-
           <div>
-            <button className="mt-3 min-h-11 rounded-md bg-[#9D6C41] px-4 py-2 text-[12px] text-white">
-              View in Store
-            </button>
+            <Link href="/store?sort=newest" className="mt-3 inline-flex min-h-11 items-center rounded-md bg-[#9D6C41] px-4 py-2 text-[12px] text-white">View in Store</Link>
           </div>
 
           <AppImage
             src="https://images.unsplash.com/photo-1519643381401-22c77e60520e?auto=format&fit=crop&w=700&q=80"
-            alt="Scandinavian dining set"
+            alt="Warm modern living room furniture"
             className="mb-2 mt-4 h-40 w-full rounded-2xl object-cover sm:h-52 xl:h-24"
           />
         </div>
 
         {/* ================= RIGHT PRODUCT CARDS ================= */}
-        <div className="grid grid-cols-2 gap-3 xl:col-span-5">
-
-          {products?.map((item) => {
-            return(
-              <ProductMiniCard
-                key={item._id}
-                {...item}/>
-            )
-            
-})}
+        <div className="grid gap-3 min-[480px]:grid-cols-2 xl:col-span-5">
+          {products?.length ? products.map((item) => <HomeProductCard key={item._id} product={item} />) : <p className="col-span-full rounded-2xl border border-[#E5D5C3] bg-white p-6 text-sm text-[#665548]">New arrivals will appear here soon.</p>}
 
         </div>
 

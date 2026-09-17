@@ -103,6 +103,10 @@ const buildPublicFilter = async (query) => {
         if (Number.isFinite(maximum)) filter.salePrice.$lte = maximum;
     }
     if (query.material) filter.material = { $in: query.material.split(",").filter((value) => MATERIALS.has(value)) };
+    if (query.search) {
+        const search = String(query.search).trim().slice(0, 80).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        if (search) filter.$and = [{ $or: [{ title: { $regex: search, $options: "i" } }, { slug: { $regex: search, $options: "i" } }] }];
+    }
     return filter;
 };
 
@@ -146,6 +150,17 @@ export const readById = async (req, res) => {
         if (!isValidId(req.params.id)) return sendBadRequest(res, "Invalid product id");
         const { categories, rooms } = await getActiveReferences();
         const product = await ProductModel.findOne({ _id: req.params.id, status: true, category: { $in: categories }, roomType: { $in: rooms } }).populate(POPULATE);
+        if (!product) return sendNotFound(res, "Product not found");
+        return res.status(200).json({ success: true, message: "Product found", data: product });
+    } catch (error) { return sendServerError(res, error); }
+};
+
+export const readBySlug = async (req, res) => {
+    try {
+        const slug = normalizeSlug(req.params.slug);
+        if (!slug || slug !== req.params.slug) return sendNotFound(res, "Product not found");
+        const { categories, rooms } = await getActiveReferences();
+        const product = await ProductModel.findOne({ slug, status: true, category: { $in: categories }, roomType: { $in: rooms } }).populate(POPULATE);
         if (!product) return sendNotFound(res, "Product not found");
         return res.status(200).json({ success: true, message: "Product found", data: product });
     } catch (error) { return sendServerError(res, error); }

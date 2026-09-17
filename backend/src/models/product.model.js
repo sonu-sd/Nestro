@@ -76,6 +76,8 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    reviewCount: { type: Number, default: 0, min: 0 },
+    ratingAverage: { type: Number, default: 0, min: 0, max: 5 },
     thumbnailPublicId: {
       type: String,
       default: "",

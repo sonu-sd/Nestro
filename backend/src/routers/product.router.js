@@ -1,5 +1,5 @@
 import express from "express"
-import {read,readAdmin,readAdminById,readById,create,updateStatus,edit,deleteById,updateFlag,addImages} from "../controllers/product.controller.js"
+import {read,readAdmin,readAdminById,readById,readBySlug,create,updateStatus,edit,deleteById,updateFlag,addImages} from "../controllers/product.controller.js"
 import upload from "../middleware/upload.js";
 import { authorized, protect } from "../middleware/auth.js";
 const router = express.Router()
@@ -7,6 +7,7 @@ const router = express.Router()
 router.get("/", read);
 router.get("/admin", protect,authorized("admin","superAdmin"), readAdmin);
 router.get("/admin/:id", protect,authorized("admin","superAdmin"), readAdminById);
+router.get("/slug/:slug", readBySlug);
 router.get("/:id", readById);
 router.post("/create", protect,authorized("admin","superAdmin"),upload.single("thumbnail"), create);
 router.patch("/status-update/:id",protect,authorized("admin","superAdmin"),updateStatus);

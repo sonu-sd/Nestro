@@ -13,6 +13,7 @@ import {
   BedDouble,
   PackageCheck,
   Palette,
+  MessageSquareText,
 } from 'lucide-react'
 
 export default function Adminaside() {
@@ -49,6 +50,11 @@ export default function Adminaside() {
       name: "Colors",
       path: "/admin/colors",
       icon: Palette,
+    },
+    {
+      name: "Reviews",
+      path: "/admin/reviews",
+      icon: MessageSquareText,
     },
   ]
 

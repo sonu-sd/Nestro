@@ -1,29 +1,32 @@
-import { fetchProduct } from "@/api/api";
+import { fetchProduct, fetchReviews } from "@/api/api";
 import BestsellSection from "@/components/website/home-components/bestsells/BestsellSection";
 import Bottomsection from "@/components/website/home-components/bottom/Bottomsection";
 import CategorySection from "@/components/website/home-components/category/CategorySection";
 import Hero from "@/components/website/home-components/hero/Hero";
 import Landedsection from "@/components/website/home-components/justLanded/Landedsection";
 import Shopsection from "@/components/website/home-components/shopbyroom/Shopesection";
-import Image from "next/image";
+import { connection } from "next/server";
 
 export default async function Home() {
-const products = await fetchProduct({})
-const bestSellers = products.data.filter((item) => item.bestSeller).slice(0, 4);
-const newArrival = products.data.filter((item)=>item.newArrival).slice(0,4)
+await connection();
+const [bestSellers, newArrival, reviews] = await Promise.all([
+  fetchProduct({ bestseller: true, limit: 4 }),
+  fetchProduct({ newarrival: true, limit: 4 }),
+  fetchReviews({ limit: 3 }),
+]);
 
   return (
     <div>
     <Hero/>
     <CategorySection />
     <BestsellSection 
-    products={bestSellers}
+    products={bestSellers.data}
      />
     <Landedsection
-    products={newArrival}
+    products={newArrival.data}
     />
     <Shopsection/>
-    <Bottomsection/>
+    <Bottomsection reviews={reviews.data}/>
     </div>
   );
 }

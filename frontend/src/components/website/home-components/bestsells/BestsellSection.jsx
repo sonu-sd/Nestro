@@ -1,5 +1,5 @@
 import React from 'react'
-import Card from './Card'
+import HomeProductCard from '../HomeProductCard'
 import Link from "next/link"
 
 
@@ -15,21 +15,10 @@ export default async function BestsellSection({ products }) {
         Best Sellers
       </h2>
 
-      <div className="grid grid-cols-1 gap-4 mt-5 min-[480px]:grid-cols-2 lg:grid-cols-4 lg:gap-6">
-        {products?.map((item) => {
-
-
-          if (item.bestSeller) {
-            return (
-              <Link key={item._id} href='store?bestsaller=true'>
-                <Card
-                  {...item} />
-              </Link>
-            )
-          }
-
-        })}
+      <div className="mt-5 grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+        {products?.length ? products.map((item) => <HomeProductCard key={item._id} product={item} />) : <p className="col-span-full rounded-2xl border border-[#E5D5C3] bg-white p-6 text-sm text-[#665548]">Best sellers will appear here soon.</p>}
       </div>
+      <Link href="/store?sort=bestselling" className="mt-4 inline-block text-sm font-semibold text-[#8B5E3C] hover:underline">Explore all products →</Link>
     </section>
   )
 }

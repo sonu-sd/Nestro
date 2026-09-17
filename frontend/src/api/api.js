@@ -80,7 +80,7 @@ export const fetchRoomById = async (id) => {
 }
 
 
-export const fetchProduct = async ({ category, room, stock, minPrice, maxPrice, page, sort, material, color } = {}) => {
+export const fetchProduct = async ({ category, room, stock, minPrice, maxPrice, page, sort, material, color, limit, bestseller, newarrival } = {}) => {
     try {
         const params = new URLSearchParams();
         if (category != null) params.append("category", category);
@@ -92,6 +92,9 @@ export const fetchProduct = async ({ category, room, stock, minPrice, maxPrice, 
         if (maxPrice != null) params.append("maxprice", maxPrice);
         if (page != null) params.append("page", page)
         if (sort) params.append("sort", sort);
+        if (limit != null) params.append("limit", limit);
+        if (bestseller != null) params.append("bestseller", bestseller);
+        if (newarrival != null) params.append("newarrival", newarrival);
         // console.log("ID:", id);
 
         const response = await client.get(`/product?${params.toString()}`);
@@ -108,6 +111,15 @@ export const fetchProduct = async ({ category, room, stock, minPrice, maxPrice, 
             data: [],
             message: error.response?.data?.message || error.message,
         };
+    }
+};
+
+export const fetchReviews = async ({ limit = 3 } = {}) => {
+    try {
+        const response = await client.get(`/review?limit=${limit}`);
+        return response.data;
+    } catch (error) {
+        return { success: false, data: [], message: error.response?.data?.message || error.message };
     }
 };
 
@@ -137,6 +149,21 @@ export const fetchProductById = async (id) => {
     }
 
 }
+
+export const fetchProductBySlug = async (slug) => {
+    try {
+        const response = await client.get(`/product/slug/${encodeURIComponent(slug)}`);
+        return response.data.data;
+    } catch (error) {
+        if (error.response?.status === 404) return null;
+        throw error;
+    }
+};
+
+export const fetchProductReviews = async (productId, limit = 6) => {
+    const response = await client.get("/review", { params: { product: productId, limit } });
+    return response.data;
+};
 
 
 // export const getMe = async () => {

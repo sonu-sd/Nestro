@@ -12,6 +12,7 @@ import userRouter from "./routers/user.router.js";
 import cartRouter from "./routers/cart.router.js";
 import orderRouter from "./routers/order.router.js";
 import colorRouter from "./routers/color.router.js";
+import reviewRouter from "./routers/review.router.js";
 import { isDatabaseReady } from "./config/env.js";
 
 const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:3000").split(",").map((origin) => origin.trim()).filter(Boolean);
@@ -35,6 +36,7 @@ app.use("/api/user", userRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/order", orderRouter);
 app.use("/api/color", colorRouter);
+app.use("/api/review", reviewRouter);
 app.use((req, res) => res.status(404).json({ success: false, message: "Route not found", requestId: req.requestId }));
 app.use((error, req, res, next) => {
     console.error(JSON.stringify({ level: "error", requestId: req.requestId, method: req.method, path: req.originalUrl, message: error.message }));

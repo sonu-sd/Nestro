@@ -7,7 +7,7 @@
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "test": "node --test",
-    "test:integration": "node --test integration/color.flow.test.js"
+    "test:integration": "node --test integration/*.test.js"
   },
   "keywords": [],
   "author": "",
