@@ -22,6 +22,8 @@ test("health endpoint reports a live API with a request ID", async () => {
     assert.equal(body.status, "ok");
     assert.ok(body.requestId);
     assert.equal(response.headers.get("x-request-id"), body.requestId);
+    assert.equal(response.headers.get("x-powered-by"), null);
+    assert.ok(response.headers.get("x-content-type-options"));
 });
 
 test("readiness endpoint reports not ready before MongoDB connects", async () => {

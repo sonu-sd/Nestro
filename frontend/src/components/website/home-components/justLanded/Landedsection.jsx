@@ -3,7 +3,6 @@ import { ProductsData } from "./ProductsData";
 import ProductMiniCard from "./Productminicard";
 
 export default function Landedsection({products}) {
-  console.log(products,"childhfkdhasioi")
   
   return (
     <section className="px-4 py-8 sm:px-6 lg:px-8">

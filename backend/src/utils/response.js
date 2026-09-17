@@ -55,10 +55,15 @@ const sendForbidden = (res, message="Access denied") =>{
 
 //server error
 const sendServerError = (res,error) =>{
-    console.error(error)
+    console.error(JSON.stringify({
+        level: "error",
+        requestId: res.req?.requestId,
+        message: error?.message || "Unknown server error",
+    }))
     return res.status(500).json({
         success:false,
-        message:"Internal server error"
+        message:"Internal server error",
+        requestId: res.req?.requestId,
     })
 }
 

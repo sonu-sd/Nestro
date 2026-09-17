@@ -3,6 +3,8 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import mongoose from "mongoose";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import categoryRouter from "./routers/category.router.js";
 import roomRouter from "./routers/room.router.js";
 import productRouter from "./routers/product.router.js";
@@ -15,10 +17,13 @@ const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:3000").spli
 const app = express();
 
 app.use((req, res, next) => { req.requestId = crypto.randomUUID(); res.setHeader("X-Request-Id", req.requestId); next(); });
+app.disable("x-powered-by");
+app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(cookieParser());
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
+app.use("/api", rateLimit({ windowMs: 15 * 60 * 1000, limit: 300, standardHeaders: "draft-8", legacyHeaders: false, message: { success: false, message: "Too many requests. Please try again later." } }));
 app.get("/api/health", (req, res) => res.status(200).json({ success: true, status: "ok", requestId: req.requestId }));
 app.get("/api/ready", (req, res) => { const ready = isDatabaseReady(mongoose); return res.status(ready ? 200 : 503).json({ success: ready, status: ready ? "ready" : "not_ready", requestId: req.requestId }); });
 app.use("/api/category", categoryRouter);

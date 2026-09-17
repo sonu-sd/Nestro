@@ -11,7 +11,6 @@ export default async function Home() {
 const products = await fetchProduct({})
 const bestSellers = products.data.filter((item) => item.bestSeller).slice(0, 4);
 const newArrival = products.data.filter((item)=>item.newArrival).slice(0,4)
-console.log(newArrival,"nikhi ke bhai ke children ")
 
   return (
     <div>

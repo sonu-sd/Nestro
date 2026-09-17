@@ -11,7 +11,6 @@ export default function Filtersection({ title, data = [], queryKey="" }) {
   // console.log("FILTER DATA:", data);
   //get selected value from url and split then into an array
   const selectValue = searchParams.get(queryKey)?.split(",") || [];
-  console.log(selectValue)
 
   function handleChange(slug){
     const params = new URLSearchParams(searchParams.toString());

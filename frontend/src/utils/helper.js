@@ -6,7 +6,6 @@ const client = axios.create({
   withCredentials:true
 
 });
-console.log(process.env.NEXT_PUBLIC_API_BASE_URL);
 
 /**
  * Convert text into a URL-friendly slug
