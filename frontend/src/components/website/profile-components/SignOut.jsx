@@ -2,22 +2,19 @@
 
 import { client } from "@/utils/helper";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { FiLogOut, FiAlertTriangle } from "react-icons/fi";
 
 export default function SignOut() {
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleLogout = async () => {
     try {
       setLoading(true);
 
-     const response = await client.post("/user/logout")
-      console.log("Logout", response.data);
-
-      window.location.href = "/sign_in"
-
-      // Example:
-      // router.push("/login");
+      await client.post("/user/logout");
+      router.replace("/sign_in");
     } catch (error) {
       console.log("Logout error:", error.response?.data || error.message);
     } finally {

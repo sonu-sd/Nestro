@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
+import { Writable } from "node:stream";
 import test from "node:test";
 import app from "../src/app.js";
+import cloudinary from "../src/config/cloudinary.js";
+import { uploadBufferToCloudinary } from "../src/middleware/upload.js";
 
 let server;
 let baseUrl;
@@ -39,4 +42,37 @@ test("unknown routes return a traceable 404 response", async () => {
     assert.equal(response.status, 404);
     assert.equal(body.success, false);
     assert.ok(body.requestId);
+});
+
+test("Cloudinary v2 upload wrapper preserves secure asset metadata", async () => {
+    const originalUploadStream = cloudinary.uploader.upload_stream;
+    let receivedBuffer;
+
+    cloudinary.uploader.upload_stream = (options, callback) => new Writable({
+        write(chunk, encoding, done) {
+            receivedBuffer = chunk;
+            done();
+        },
+        final(done) {
+            assert.equal(options.folder, "nestro");
+            assert.equal(options.resource_type, "image");
+            callback(null, {
+                secure_url: "https://res.cloudinary.com/demo/image/upload/nestro/example.webp",
+                public_id: "nestro/example",
+            });
+            done();
+        },
+    });
+
+    try {
+        const result = await uploadBufferToCloudinary({ buffer: Buffer.from("image-data") });
+        assert.deepEqual(result, {
+            path: "https://res.cloudinary.com/demo/image/upload/nestro/example.webp",
+            filename: "nestro/example",
+        });
+        assert.equal(receivedBuffer.toString(), "image-data");
+        assert.equal(cloudinary.config().secure, true);
+    } finally {
+        cloudinary.uploader.upload_stream = originalUploadStream;
+    }
 });
