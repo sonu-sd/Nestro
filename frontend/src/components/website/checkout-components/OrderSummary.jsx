@@ -6,7 +6,16 @@ import { client } from "@/utils/helper";
 
 const SHIPPING = 49;
 
-export default function OrderSummary({ selectedAddressId }) {
+const loadRazorpayCheckout = () => new Promise((resolve) => {
+  if (window.Razorpay) return resolve(true);
+  const script = document.createElement("script");
+  script.src = "https://checkout.razorpay.com/v1/checkout.js";
+  script.onload = () => resolve(true);
+  script.onerror = () => resolve(false);
+  document.body.appendChild(script);
+});
+
+export default function OrderSummary({ selectedAddressId, paymentMethod }) {
   const router = useRouter();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,18 +39,53 @@ export default function OrderSummary({ selectedAddressId }) {
   const tax = Math.round(subtotal * 0.05);
   const total = subtotal + SHIPPING + tax;
 
+  const completeOrder = (orderId) => {
+    router.push(`/profile?order=${orderId}`);
+    router.refresh();
+  };
+
   const placeOrder = async () => {
     if (!selectedAddressId) return setError("Please select a delivery address.");
     if (!products.length) return setError("Your cart is empty.");
     try {
       setError("");
       setPlacing(true);
-      const response = await client.post("/order", { addressId: selectedAddressId, paymentMethod: "COD" });
-      router.push(`/profile?order=${response.data.data._id}`);
-      router.refresh();
+      if (paymentMethod === "COD") {
+        const response = await client.post("/order", { addressId: selectedAddressId, paymentMethod: "COD" });
+        completeOrder(response.data.data._id);
+        return;
+      }
+
+      if (!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID) throw new Error("Online payments are not configured yet.");
+      const response = await client.post("/order/online", { addressId: selectedAddressId });
+      if (!(await loadRazorpayCheckout())) throw new Error("Unable to load secure payment checkout.");
+      const payment = response.data.data;
+      const checkout = new window.Razorpay({
+        key: payment.keyId,
+        amount: payment.amount,
+        currency: payment.currency,
+        name: "Nestro",
+        description: `Order ${payment.orderId}`,
+        order_id: payment.razorpayOrderId,
+        handler: async (result) => {
+          try {
+            const verified = await client.post("/order/online/verify", { orderId: payment.orderId, razorpayOrderId: result.razorpay_order_id, razorpayPaymentId: result.razorpay_payment_id, razorpaySignature: result.razorpay_signature });
+            completeOrder(verified.data.data._id);
+          } catch (verificationError) {
+            setError(verificationError.response?.data?.message || "Payment received but verification failed. Please contact support.");
+          } finally { setPlacing(false); }
+        },
+        modal: { ondismiss: () => setPlacing(false) },
+        theme: { color: "#15803d" },
+      });
+      checkout.open();
+      return;
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Unable to place your order.");
-    } finally { setPlacing(false); }
+      setError(requestError.response?.data?.message || requestError.message || "Unable to place your order.");
+      setPlacing(false);
+    } finally {
+      if (paymentMethod === "COD") setPlacing(false);
+    }
   };
 
   return <div className="sticky top-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -51,7 +95,7 @@ export default function OrderSummary({ selectedAddressId }) {
     <div className="my-6 border-t" />
     <div className="space-y-3 text-sm text-gray-600"><div className="flex justify-between"><span>Subtotal</span><span>₹{subtotal}</span></div><div className="flex justify-between"><span>Shipping</span><span>₹{products.length ? SHIPPING : 0}</span></div><div className="flex justify-between"><span>Tax</span><span>₹{tax}</span></div></div>
     <div className="my-5 border-t" /><div className="flex justify-between"><span className="text-lg font-bold">Total</span><span className="text-2xl font-bold text-green-700">₹{products.length ? total : 0}</span></div>
-    <button onClick={placeOrder} disabled={placing || loading || !products.length} className="mt-6 w-full rounded-lg bg-green-700 px-5 py-3.5 text-sm font-semibold text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60">{placing ? "Placing order..." : `Place COD Order · ₹${products.length ? total : 0}`}</button>
+    <button onClick={placeOrder} disabled={placing || loading || !products.length} className="mt-6 w-full rounded-lg bg-green-700 px-5 py-3.5 text-sm font-semibold text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60">{placing ? "Processing..." : `${paymentMethod === "COD" ? "Place COD Order" : "Pay Online"} · ₹${products.length ? total : 0}`}</button>
     <p className="mt-4 text-center text-xs text-gray-500">Final amount is verified securely by the server.</p>
   </div>;
 }

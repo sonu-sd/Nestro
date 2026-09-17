@@ -8,6 +8,7 @@ import { useState } from "react";
 export default function CheckoutPage() {
 
   const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState("COD");
 
 
   return (
@@ -35,12 +36,12 @@ export default function CheckoutPage() {
           <div className="space-y-6 lg:col-span-2">
             <AddressSection onAddressSelect={setSelectedAddressId} />
 
-            <PaymentSection />
+            <PaymentSection paymentMethod={paymentMethod} onPaymentMethodChange={setPaymentMethod} />
           </div>
 
           {/* Right */}
           <div>
-            <OrderSummary selectedAddressId={selectedAddressId} />
+            <OrderSummary selectedAddressId={selectedAddressId} paymentMethod={paymentMethod} />
           </div>
         </div>
       </main>

@@ -179,6 +179,7 @@ const orderSchema = new mongoose.Schema(
     paymentOrderId: {
       type: String,
       default: null,
+      index: true,
     },
 
     // Order lifecycle

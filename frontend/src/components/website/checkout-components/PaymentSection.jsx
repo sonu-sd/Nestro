@@ -1,6 +1,6 @@
 "use client";
 
-export default function PaymentSection() {
+export default function PaymentSection({ paymentMethod, onPaymentMethodChange }) {
 
   const payments = [
     {
@@ -8,6 +8,12 @@ export default function PaymentSection() {
       title: "Cash on Delivery",
       description: "Pay when your order arrives",
       icon: "💵",
+    },
+    {
+      id: "ONLINE",
+      title: "Pay Online",
+      description: "UPI, cards, net banking and wallets via Razorpay",
+      icon: "📱",
     },
   ];
 
@@ -19,7 +25,7 @@ export default function PaymentSection() {
 
       <div className="mt-5 space-y-3">
         {payments.map((payment) => {
-          const selected = true;
+          const selected = paymentMethod === payment.id;
 
           return (
             <label
@@ -35,7 +41,7 @@ export default function PaymentSection() {
                 name="payment"
                 value={payment.id}
                 checked={selected}
-                readOnly
+                onChange={() => onPaymentMethodChange(payment.id)}
                 className="h-4 w-4 accent-green-700"
               />
 
@@ -55,7 +61,7 @@ export default function PaymentSection() {
         })}
       </div>
 
-      <p className="mt-4 text-xs text-gray-500">Online payments will be available in a future update.</p>
+      {paymentMethod === "ONLINE" && !process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID && <p className="mt-4 text-xs text-amber-700">Online payments are not configured yet.</p>}
     </section>
   );
 }
