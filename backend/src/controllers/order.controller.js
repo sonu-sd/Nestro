@@ -12,6 +12,19 @@ import { sendBadRequest, sendNotFound, sendServerError } from "../utils/response
 const SHIPPING_CHARGE = 49;
 const TAX_RATE = 0.05;
 const buildOrderNumber = () => `NESTRO-${Date.now()}-${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
+const ADMIN_TRANSITIONS = {
+    PENDING: ["CONFIRMED", "CANCELLED"],
+    CONFIRMED: ["PROCESSING", "CANCELLED"],
+    PROCESSING: ["SHIPPED", "CANCELLED"],
+    SHIPPED: ["OUT_FOR_DELIVERY"],
+    OUT_FOR_DELIVERY: ["DELIVERED"],
+};
+const CUSTOMER_CANCELLABLE = new Set(["PENDING", "CONFIRMED"]);
+
+const canCancel = (order, isAdmin) => {
+    const eligibleStatus = isAdmin ? ["PENDING", "CONFIRMED", "PROCESSING"] : [...CUSTOMER_CANCELLABLE];
+    return eligibleStatus.includes(order.orderStatus) && order.paymentStatus !== "PAID";
+};
 
 const prepareOrder = async (userId, addressId, paymentMethod) => {
     if (!isValidId(addressId)) throw new Error("INVALID_ADDRESS");
@@ -116,5 +129,59 @@ export const getMyOrderById = async (req, res) => {
         const order = await OrderModel.findOne({ _id: req.params.id, user: req.user.id });
         if (!order) return sendNotFound(res, "Order not found");
         return res.status(200).json({ success: true, message: "Order found", data: order });
+    } catch (error) { return sendServerError(res, error); }
+};
+
+export const cancelMyOrder = async (req, res) => {
+    try {
+        if (!isValidId(req.params.id)) return sendBadRequest(res, "Invalid order id");
+        const order = await OrderModel.findOne({ _id: req.params.id, user: req.user.id });
+        if (!order) return sendNotFound(res, "Order not found");
+        if (!canCancel(order, false)) return sendBadRequest(res, order.paymentStatus === "PAID" ? "Paid orders require a refund before cancellation" : "This order can no longer be cancelled");
+        const reason = String(req.body.reason || "Cancelled by customer").trim().slice(0, 300);
+        order.orderStatus = "CANCELLED";
+        order.cancelledAt = new Date();
+        order.cancellationReason = reason;
+        await order.save();
+        return res.status(200).json({ success: true, message: "Order cancelled", data: order });
+    } catch (error) { return sendServerError(res, error); }
+};
+
+export const getAdminOrders = async (req, res) => {
+    try {
+        const limit = parseBoundedNumber(req.query.limit, 20, 1, 100);
+        const page = parseBoundedNumber(req.query.page, 1, 1, 100000);
+        const filter = {};
+        if (req.query.status) filter.orderStatus = req.query.status;
+        if (req.query.paymentStatus) filter.paymentStatus = req.query.paymentStatus;
+        const [data, total] = await Promise.all([
+            OrderModel.find(filter).populate("user", "name email").sort({ placedAt: -1 }).skip((page - 1) * limit).limit(limit),
+            OrderModel.countDocuments(filter),
+        ]);
+        return res.status(200).json({ success: true, message: "Orders found", data, total, page, limit, pages: Math.ceil(total / limit) });
+    } catch (error) { return sendServerError(res, error); }
+};
+
+export const updateAdminOrder = async (req, res) => {
+    try {
+        if (!isValidId(req.params.id)) return sendBadRequest(res, "Invalid order id");
+        const { orderStatus, trackingNumber, courierName, cancellationReason } = req.body;
+        const order = await OrderModel.findById(req.params.id);
+        if (!order) return sendNotFound(res, "Order not found");
+        if (!ADMIN_TRANSITIONS[order.orderStatus]?.includes(orderStatus)) return sendBadRequest(res, "Invalid order status transition");
+        if (orderStatus === "CANCELLED") {
+            if (!canCancel(order, true)) return sendBadRequest(res, order.paymentStatus === "PAID" ? "Paid orders require a refund before cancellation" : "This order can no longer be cancelled");
+            order.cancelledAt = new Date();
+            order.cancellationReason = String(cancellationReason || "Cancelled by admin").trim().slice(0, 300);
+        }
+        if (orderStatus === "SHIPPED") {
+            if (!String(trackingNumber || "").trim() || !String(courierName || "").trim()) return sendBadRequest(res, "Tracking number and courier name are required before shipping");
+            order.trackingNumber = String(trackingNumber).trim().slice(0, 100);
+            order.courierName = String(courierName).trim().slice(0, 100);
+        }
+        order.orderStatus = orderStatus;
+        if (orderStatus === "DELIVERED") order.deliveredAt = new Date();
+        await order.save();
+        return res.status(200).json({ success: true, message: "Order updated", data: order });
     } catch (error) { return sendServerError(res, error); }
 };

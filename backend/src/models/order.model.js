@@ -91,7 +91,7 @@ const orderSchema = new mongoose.Schema(
     // User who placed the order
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "user",
       required: true,
       index: true,
     },

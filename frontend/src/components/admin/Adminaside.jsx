@@ -12,6 +12,7 @@ import {
   ShoppingCart,
   BedDouble,
   Palette,
+  PackageCheck,
 } from 'lucide-react'
 
 export default function Adminaside() {
@@ -19,6 +20,11 @@ export default function Adminaside() {
   const pathname = usePathname()
 
   const navs = [
+    {
+      name: "Orders",
+      path: "/admin/orders",
+      icon: PackageCheck,
+    },
     {
       name: "Dashboard",
       path: "/admin",

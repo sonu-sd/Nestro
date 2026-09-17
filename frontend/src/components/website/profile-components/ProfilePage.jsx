@@ -3,9 +3,6 @@
 import React, { useEffect, useState, } from "react";
 
 import ProfileSidebar from "./ProfileSidebar";
-import ProfileStats from "./ProfileStats";
-import RecentOrders from "./RecentOrders";
-
 import MyOrders from "./MyOrders";
 import PersonalInfo from "./PersonalInfo";
 import Addresses from "./Addresses";
@@ -62,12 +59,7 @@ export default function ProfilePage() {
   const renderSection = () => {
     switch (activeSection) {
       case "orders":
-        return (
-          <div className="space-y-5">
-            <ProfileStats />
-            <RecentOrders />
-          </div>
-        );
+        return <MyOrders />;
 
       case "personal":
         return <PersonalInfo />;
@@ -82,12 +74,7 @@ export default function ProfilePage() {
         return <SignOut />;
 
       default:
-        return (
-          <div className="space-y-5">
-            <ProfileStats />
-            <RecentOrders />
-          </div>
-        );
+        return <MyOrders />;
     }
   };
 
