@@ -3,6 +3,7 @@ import { Writable } from "node:stream";
 import test from "node:test";
 import app from "../src/app.js";
 import cloudinary from "../src/config/cloudinary.js";
+import { validateEnvironment } from "../src/config/env.js";
 import { uploadBufferToCloudinary } from "../src/middleware/upload.js";
 
 let server;
@@ -75,4 +76,24 @@ test("Cloudinary v2 upload wrapper preserves secure asset metadata", async () =>
     } finally {
         cloudinary.uploader.upload_stream = originalUploadStream;
     }
+});
+
+test("production startup requires every external service configuration", () => {
+    const productionEnvironment = {
+        NODE_ENV: "production",
+        MONGO_URI: "mongodb://example.test/nestro",
+        JWT_SECRET: "test-secret",
+        CORS_ORIGIN: "https://nestro.example",
+        CLOUD_NAME: "cloud-name",
+        CLOUDINARY_API_KEY: "api-key",
+        CLOUDINARY_SECRET_KEY: "api-secret",
+        EMAIL_USER: "noreply@example.test",
+        EMAIL_PASS: "email-password",
+        RAZORPAY_KEY_ID: "rzp_test_key",
+        RAZORPAY_KEY_SECRET: "razorpay-secret",
+    };
+
+    assert.doesNotThrow(() => validateEnvironment(productionEnvironment));
+    delete productionEnvironment.CORS_ORIGIN;
+    assert.throws(() => validateEnvironment(productionEnvironment), /CORS_ORIGIN/);
 });

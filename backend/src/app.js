@@ -16,6 +16,7 @@ import { isDatabaseReady } from "./config/env.js";
 const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:3000").split(",").map((origin) => origin.trim()).filter(Boolean);
 const app = express();
 
+app.set("trust proxy", 1);
 app.use((req, res, next) => { req.requestId = crypto.randomUUID(); res.setHeader("X-Request-Id", req.requestId); next(); });
 app.disable("x-powered-by");
 app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: "cross-origin" } }));
