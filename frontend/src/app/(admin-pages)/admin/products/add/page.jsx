@@ -1,10 +1,13 @@
 "use client";
+import AppImage from "@/components/ui/AppImage";
 
 import React, { useEffect, useState } from "react";
 import { generateSlug, client } from "@/utils/helper";
 import { fetchCategory, fetchRoom } from "@/api/api";
 import { toast } from 'sonner';
 import { useRouter } from "next/navigation";
+import ProductColorPicker from "@/components/admin/ProductColorPicker";
+import AdminSkeleton from "@/components/admin/AdminSkeleton";
 
 export default function AddProduct() {
     const router = useRouter();
@@ -24,7 +27,7 @@ export default function AddProduct() {
         stock: true,
 
         material: "Wood",
-        color: "",
+        colors: [],
 
         length: "",
         width: "",
@@ -44,15 +47,18 @@ export default function AddProduct() {
     const [preview, setPreview] = useState("");
     const [category, setCategory] = useState([]);
     const [room, setRooms] = useState([]);
+    const [availableColors, setAvailableColors] = useState([]);
+    const [optionsLoading, setOptionsLoading] = useState(true);
 
     useEffect(
         () => {
             const fetchAPI = async () => {
                 try {
 
-                    const [category_response, room_response] = await Promise.all([
-                        await fetchCategory(),
-                        await fetchRoom()
+                    const [category_response, room_response, color_response] = await Promise.all([
+                        fetchCategory(),
+                        fetchRoom(),
+                        client.get("/color")
                     ])
                     if (category_response.success) {
                         setCategory(category_response.data)
@@ -61,10 +67,13 @@ export default function AddProduct() {
                     if (room_response.success) {
                         setRooms(room_response.data)
                     }
+                    setAvailableColors(color_response.data.data || []);
 
 
                 } catch (error) {
-
+                    toast.error("Unable to load product options. Please refresh.");
+                } finally {
+                    setOptionsLoading(false);
                 }
             }
 
@@ -132,7 +141,7 @@ export default function AddProduct() {
 
 
         Object.keys(data).forEach((key) => {
-            payload.append(key, data[key])
+            payload.append(key, key === "colors" ? data.colors.join(",") : data[key])
         })
         try {
             const response = await client.post("product/create", payload);
@@ -158,6 +167,8 @@ export default function AddProduct() {
 
     const inputClass =
         "w-full border border-white/10 bg-white text-black placeholder-gray-500 rounded-lg px-4 py-3 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition";
+
+    if (optionsLoading) return <AdminSkeleton variant="form"/>;
 
     return (
 
@@ -438,24 +449,9 @@ export default function AddProduct() {
 
                             </div>
 
-                            <div>
-
-                                <label className="block text-sm font-medium mb-2 text-gray-300">
-                                    Color
-                                </label>
-
-                                <input
-                                    type="text"
-                                    name="color"
-                                    value={data.color}
-                                    onChange={handleChange}
-                                    placeholder="Walnut"
-                                    className={inputClass}
-                                />
-
-                            </div>
-
                         </div>
+
+                        <div className="mt-5 rounded-lg border border-white/10 bg-white p-4 text-[#1e1e1e]"><ProductColorPicker colors={availableColors} selected={data.colors} onChange={(colors) => setData((current) => ({ ...current, colors }))}/></div>
 
 
 
@@ -566,7 +562,7 @@ export default function AddProduct() {
                                     {
                                         preview ? (
 
-                                            <img
+                                            <AppImage
                                                 src={preview}
                                                 alt="Preview"
                                                 className="w-full h-full object-cover"

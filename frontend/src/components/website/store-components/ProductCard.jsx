@@ -1,4 +1,5 @@
 import { FiHeart } from "react-icons/fi";
+import AppImage from "@/components/ui/AppImage";
 import Link from "next/link";
 import AtcButton from "./Cartbtn";
 import Cartbtn from "./Cartbtn";
@@ -15,6 +16,8 @@ export default function ProductCard({ product }) {
     newArrival,
     category,
     stock,
+    colors,
+    color,
   } = product;
 
   const badge = bestSeller
@@ -36,7 +39,7 @@ export default function ProductCard({ product }) {
       {/* Image */}
       <div className="relative group overflow-hidden">
 
-        <img
+        <AppImage
           src={thumbnail}
           alt={title}
           className="h-56 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-[270px]"
@@ -78,6 +81,8 @@ export default function ProductCard({ product }) {
         <h2 className="mt-2 text-[14px] font-medium text-[#1e1e1e]">
           {title}
         </h2>
+
+        {(colors?.some((item) => item.status) || (!colors?.length && color)) && <div className="mt-3 flex items-center gap-2" aria-label="Available colors">{colors?.length ? colors.filter((item) => item.status).map((item) => <span key={item._id} title={item.name} className="h-4 w-4 rounded-full border border-[#D7C8B8]" style={{ backgroundColor: item.hex }}/>) : <span className="text-xs text-[#6b7280]">{color}</span>}</div>}
 
         {/* Rating */}
         <div className="flex items-center gap-2 mt-3">

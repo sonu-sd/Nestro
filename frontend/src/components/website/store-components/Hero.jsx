@@ -1,4 +1,5 @@
 import React from 'react'
+import AppImage from "@/components/ui/AppImage";
 
 export default function Hero() {
     return (
@@ -33,7 +34,7 @@ export default function Hero() {
                 </div>
 
                 <div>
-                    <img
+                    <AppImage
                         src="https://images.unsplash.com/photo-1758448511322-8bfc73daf606?auto=format&fit=crop&w=900&q=80"
                         alt="Modern Living"
                         className="h-52 w-full rounded-2xl object-cover sm:h-[220px] sm:rounded-3xl"

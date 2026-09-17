@@ -6,6 +6,7 @@ import cloudinary from "../src/config/cloudinary.js";
 import { validateEnvironment } from "../src/config/env.js";
 import { uploadBufferToCloudinary } from "../src/middleware/upload.js";
 import { authorized } from "../src/middleware/auth.js";
+import ColorModel from "../src/models/color.model.js";
 
 let server;
 let baseUrl;
@@ -56,6 +57,23 @@ test("admin product endpoints reject requests without a session", async () => {
         const response = await fetch(`${baseUrl}${path}`, { method });
         assert.equal(response.status, 401, `${method} ${path} should require authentication`);
     }
+});
+
+test("color management endpoints require an admin session", async () => {
+    for (const [method, path] of [
+        ["GET", "/api/color/admin"],
+        ["POST", "/api/color/create"],
+        ["PUT", "/api/color/edit/507f1f77bcf86cd799439011"],
+        ["PATCH", "/api/color/status-update/507f1f77bcf86cd799439011"],
+    ]) {
+        const response = await fetch(`${baseUrl}${path}`, { method });
+        assert.equal(response.status, 401, `${method} ${path} should require authentication`);
+    }
+});
+
+test("color model requires a valid hex value", async () => {
+    await assert.doesNotReject(new ColorModel({ name: "Walnut", slug: "walnut", hex: "#8B5E3C" }).validate());
+    await assert.rejects(new ColorModel({ name: "Walnut", slug: "walnut", hex: "brown" }).validate());
 });
 
 test("admin role guard rejects regular users and accepts admins", () => {

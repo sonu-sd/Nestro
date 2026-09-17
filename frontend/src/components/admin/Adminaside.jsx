@@ -12,6 +12,7 @@ import {
   ShoppingCart,
   BedDouble,
   PackageCheck,
+  Palette,
 } from 'lucide-react'
 
 export default function Adminaside() {
@@ -44,11 +45,16 @@ export default function Adminaside() {
       path: "/admin/room-type",
       icon: BedDouble,
     },
+    {
+      name: "Colors",
+      path: "/admin/colors",
+      icon: Palette,
+    },
   ]
 
   return (
     <aside
-      className={`fixed inset-x-0 bottom-0 z-50 h-20 w-full bg-[#0d1b2a] transition-all duration-300 md:sticky md:top-0 md:h-screen ${toggle ? "md:w-19" : "md:w-64"
+      className={`fixed inset-x-0 bottom-0 z-50 h-20 w-full bg-[#35261E] transition-all duration-300 md:sticky md:top-0 md:h-screen ${toggle ? "md:w-19" : "md:w-64"
         }`}
     >
       {/* Header */}
@@ -56,7 +62,7 @@ export default function Adminaside() {
         <div className="flex gap-3">
           <span
             onClick={() => settoggle(!toggle)}
-            className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center cursor-pointer"
+            className="w-9 h-9 rounded-xl bg-[#8B5E3C] flex items-center justify-center cursor-pointer"
           >
             <Gauge className="text-white" />
           </span>
@@ -65,10 +71,10 @@ export default function Adminaside() {
             !toggle && (
               <div>
                 <div className="text-sm font-bold text-white">
-                  AdminPanel
+                  nestro.
                 </div>
-                <div className="text-[10px] text-teal-400">
-                  Pro Dashboard
+                <div className="text-[10px] text-[#D8AF83]">
+                  Admin workspace
                 </div>
               </div>
             )
@@ -97,7 +103,7 @@ export default function Adminaside() {
         <div className="flex h-full items-stretch overflow-x-auto px-1 md:block md:h-auto md:space-y-2 md:px-2">
           {navs.map((item) => {
             const Icon = item.icon
-            const active = pathname === item.path
+            const active = pathname === item.path || (item.path !== "/admin" && pathname.startsWith(`${item.path}/`))
 
             return (
               <Link
@@ -105,14 +111,14 @@ export default function Adminaside() {
                 href={item.path}
                 className={`relative flex min-w-[72px] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-all md:min-w-0 md:flex-row md:justify-start md:gap-3 md:px-3 md:py-4
                 ${active
-                    ? "group bg-gradient-to-r from-teal-500/20 to-teal-600/10 text-teal-400 border border-teal-500/20"
+                    ? "group bg-[#6C482F] text-[#FFE2BF] border border-[#987154]"
 
-                    : "text-slate-300 hover:bg-slate-800 hover:text-white border border-transparent "
+                    : "text-[#E9DED3] hover:bg-[#493429] hover:text-white border border-transparent "
                   }`} >
 
                 {
                   active && (
-                    <span className='absolute left-0 top-1/2 h-6 w-1 bg-teal-400 rounded-r -translate-y-1/2 '></span>
+                    <span className='absolute left-0 top-1/2 h-6 w-1 bg-[#D8AF83] rounded-r -translate-y-1/2 '></span>
                   )
                 }
                 <Icon size={20} />

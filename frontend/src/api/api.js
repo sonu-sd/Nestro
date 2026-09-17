@@ -80,12 +80,13 @@ export const fetchRoomById = async (id) => {
 }
 
 
-export const fetchProduct = async ({ category, room, stock, minPrice, maxPrice, page, sort, material } = {}) => {
+export const fetchProduct = async ({ category, room, stock, minPrice, maxPrice, page, sort, material, color } = {}) => {
     try {
         const params = new URLSearchParams();
         if (category != null) params.append("category", category);
         if (room != null) params.append("room", room);
         if (material != null) params.append("material", material);
+        if (color != null) params.append("color", color);
         if (stock != null) params.append("stock", stock);
         if (minPrice != null) params.append("minprice", minPrice);
         if (maxPrice != null) params.append("maxprice", maxPrice);
@@ -107,6 +108,15 @@ export const fetchProduct = async ({ category, room, stock, minPrice, maxPrice, 
             data: [],
             message: error.response?.data?.message || error.message,
         };
+    }
+};
+
+export const fetchColor = async () => {
+    try {
+        const response = await client.get("/color");
+        return response.data;
+    } catch (error) {
+        return { success: false, data: [], message: error.response?.data?.message || error.message };
     }
 };
 

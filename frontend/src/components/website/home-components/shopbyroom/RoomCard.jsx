@@ -1,10 +1,11 @@
 import Link from "next/link"
+import AppImage from "@/components/ui/AppImage";
 
 export default function RoomCard({ image,name,count,  slug, large = false,}) {
   return (
     <Link href={`/store?room=${slug}`}>
     <div className={`group relative overflow-hidden rounded-2xl ${large ? "h-[410px]" : "h-[198px]" }`}>
-      <img
+      <AppImage
         src={image}
         alt={name}
         className="h-full w-full object-cover transition duration-500 group-hover:scale-105"

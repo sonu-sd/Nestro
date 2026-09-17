@@ -1,4 +1,5 @@
 import React from 'react'
+import AppImage from "@/components/ui/AppImage";
 
 export default function Card({thumbnail
 ,title,category,price}) {
@@ -7,7 +8,7 @@ export default function Card({thumbnail
         <div className="group cursor-pointer border rounded-2xl border-[#C6A27E] hover:border-[#8B5E3C]">
            
             <div className="relative h-[200px] overflow-hidden rounded-t-2xl bg-[#f5f5f5]">
-                <img
+                <AppImage
                     src={thumbnail}
                     alt={title}
                     className="h-full w-full object-cover transition-all duration-500 group-hover:scale-110"

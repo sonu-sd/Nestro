@@ -1,10 +1,11 @@
 import React from 'react'
+import AppImage from "@/components/ui/AppImage";
 
 
 export default function ProductMiniCard({thumbnail,category,title,price,}) {
   return (
     <div className="overflow-hidden rounded-2xl border border-[#d8c2ac] bg-white hover: duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-[#8B5E3C]">
-      <img
+      <AppImage
         src={thumbnail}
         alt={title}
         className="h-26 w-full object-cover transition-transform duration-300 hover:scale-105"

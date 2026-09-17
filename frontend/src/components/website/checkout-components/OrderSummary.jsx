@@ -1,4 +1,5 @@
 "use client";
+import AppImage from "@/components/ui/AppImage";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -91,7 +92,7 @@ export default function OrderSummary({ selectedAddressId, paymentMethod }) {
   return <div className="sticky top-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
     <h2 className="text-lg font-semibold text-gray-900">Order Summary</h2>
     {error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-    <div className="mt-6 space-y-5">{loading ? <p className="text-sm text-gray-500">Loading cart...</p> : products.length === 0 ? <p className="text-sm text-gray-500">Your cart is empty.</p> : products.map((item) => <div key={item._id} className="flex gap-3"><img src={item.thumbnail} alt={item.title} className="h-16 w-16 rounded-lg object-cover" /><div className="flex-1"><h3 className="text-sm font-medium text-gray-900">{item.title}</h3><p className="mt-1 text-xs text-gray-500">Qty: {item.qty}</p></div><span className="text-sm font-semibold">₹{item.salePrice * item.qty}</span></div>)}</div>
+    <div className="mt-6 space-y-5">{loading ? <p className="text-sm text-gray-500">Loading cart...</p> : products.length === 0 ? <p className="text-sm text-gray-500">Your cart is empty.</p> : products.map((item) => <div key={item._id} className="flex gap-3"><AppImage src={item.thumbnail} alt={item.title} className="h-16 w-16 rounded-lg object-cover" /><div className="flex-1"><h3 className="text-sm font-medium text-gray-900">{item.title}</h3><p className="mt-1 text-xs text-gray-500">Qty: {item.qty}</p></div><span className="text-sm font-semibold">₹{item.salePrice * item.qty}</span></div>)}</div>
     <div className="my-6 border-t" />
     <div className="space-y-3 text-sm text-gray-600"><div className="flex justify-between"><span>Subtotal</span><span>₹{subtotal}</span></div><div className="flex justify-between"><span>Shipping</span><span>₹{products.length ? SHIPPING : 0}</span></div><div className="flex justify-between"><span>Tax</span><span>₹{tax}</span></div></div>
     <div className="my-5 border-t" /><div className="flex justify-between"><span className="text-lg font-bold">Total</span><span className="text-2xl font-bold text-green-700">₹{products.length ? total : 0}</span></div>

@@ -30,9 +30,9 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body >
+      <body className="admin-theme">
 
-        <AdminGate><div className="flex min-h-screen w-full bg-white pb-20 md:pb-0">
+        <AdminGate><div className="admin-shell flex min-h-screen w-full pb-20 md:pb-0">
         <Toaster position="top-center" richColors/>
           <Adminaside />
           <div className="min-w-0 flex-1">

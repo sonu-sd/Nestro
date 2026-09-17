@@ -1,4 +1,5 @@
 'use client';
+import AppImage from "@/components/ui/AppImage";
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -131,7 +132,7 @@ export default function AddCategoryPage() {
                         <div >
                             {
                                 formData.image &&
-                                <img src={URL.createObjectURL(formData.image)} className='w-20 h-10' alt="" />
+                                <AppImage src={URL.createObjectURL(formData.image)} className='w-20 h-10' alt="" />
                             }
                             <p className="text-sm text-gray-400">
                                 Image upload will be added later

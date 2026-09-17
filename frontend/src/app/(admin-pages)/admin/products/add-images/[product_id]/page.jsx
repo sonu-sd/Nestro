@@ -1,8 +1,10 @@
 "use client";
+import AppImage from "@/components/ui/AppImage";
 
 import React, { useEffect, useState } from "react";
 import { client } from "@/utils/helper";
 import { toast } from 'sonner';
+import AdminSkeleton from "@/components/admin/AdminSkeleton";
 
 // import { Target } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -10,6 +12,7 @@ import { useParams, useRouter } from "next/navigation";
 export default function AddProduct() {
     const router = useRouter();
     const [product, setproduct] = useState({});
+    const [loadError, setLoadError] = useState("");
     const { product_id } = useParams()
 
     useEffect(
@@ -22,7 +25,7 @@ export default function AddProduct() {
                     }
 
                 } catch (error) {
-                    console.log(error);
+                    setLoadError(error.response?.data?.message || "Unable to load product");
 
 
                 }
@@ -66,6 +69,9 @@ export default function AddProduct() {
 
     const inputClass =
         "w-full border border-white/10 bg-white text-black placeholder-gray-500 rounded-lg px-4 py-3 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition";
+
+    if (loadError) return <main className="p-8 text-red-700" role="alert">{loadError}</main>;
+    if (!product._id) return <AdminSkeleton variant="form"/>;
 
     return (
 
@@ -161,7 +167,7 @@ export default function AddProduct() {
 
                                                 {product?.images?.[index] ? (
 
-                                                    <img
+                                                    <AppImage
                                                         src={product.images[index]}
                                                         alt={`Product image ${index + 1}`}
                                                         className="w-full h-full object-cover"

@@ -1,4 +1,5 @@
 import React from "react";
+import AppImage from "@/components/ui/AppImage";
 import { ProductsData } from "./ProductsData";
 import ProductMiniCard from "./Productminicard";
 
@@ -53,7 +54,7 @@ export default function Landedsection({products}) {
             </button>
           </div>
 
-          <img
+          <AppImage
             src="https://images.unsplash.com/photo-1519643381401-22c77e60520e?auto=format&fit=crop&w=700&q=80"
             alt="Scandinavian dining set"
             className="mb-2 mt-4 h-40 w-full rounded-2xl object-cover sm:h-52 xl:h-24"

@@ -1,12 +1,20 @@
 import ProductModel from "../models/product.model.js";
 import categoryModel from "../models/category.model.js";
 import roomModel from "../models/room.model.js";
+import colorModel from "../models/color.model.js";
 import { isValidId, normalizeSlug, parseBoolean, parseBoundedNumber } from "../utils/catalog.js";
 import { getUploadMetadata, removeCloudinaryAssets } from "../utils/media.js";
 import { sendBadRequest, sendConflict, sendNotFound, sendServerError, sendSuccess } from "../utils/response.js";
 
 const MATERIALS = new Set(["Wood", "Sheesham", "Engineered Wood", "Metal", "Steel", "Plastic", "Glass", "Marble", "Fabric", "Leather"]);
-const POPULATE = [{ path: "category", select: "name slug status" }, { path: "roomType", select: "name slug status" }];
+const POPULATE = [{ path: "category", select: "name slug status" }, { path: "roomType", select: "name slug status" }, { path: "colors", select: "name slug hex status" }];
+
+const validateColorReferences = async (colors, existing = []) => {
+    if (!Array.isArray(colors) || colors.length > 12 || colors.some((id) => !isValidId(id))) return "Please select valid colors";
+    if (!colors.length) return null;
+    const count = await colorModel.countDocuments({ _id: { $in: colors }, $or: [{ status: true }, { _id: { $in: existing } }] });
+    return count === colors.length ? null : "Selected colors must be active";
+};
 
 const getActiveReferences = async () => {
     const [categories, rooms] = await Promise.all([
@@ -26,7 +34,7 @@ const validateReferences = async (category, roomType) => {
 };
 
 const parseProductValues = (body) => {
-    const allowed = ["title", "slug", "shortDescription", "description", "category", "roomType", "price", "salePrice", "discount", "stock", "material", "color", "length", "width", "height", "weight", "featured", "bestSeller", "newArrival", "status"];
+    const allowed = ["title", "slug", "shortDescription", "description", "category", "roomType", "price", "salePrice", "discount", "stock", "material", "color", "colors", "length", "width", "height", "weight", "featured", "bestSeller", "newArrival", "status"];
     const values = Object.fromEntries(allowed.filter((key) => body[key] !== undefined).map((key) => [key, body[key]]));
     ["price", "salePrice", "discount"].forEach((key) => {
         if (values[key] !== undefined) values[key] = Number(values[key]);
@@ -35,6 +43,7 @@ const parseProductValues = (body) => {
         if (values[key] !== undefined) values[key] = parseBoolean(values[key]);
     });
     if (values.slug !== undefined) values.slug = normalizeSlug(values.slug);
+    if (values.colors !== undefined) values.colors = [...new Set((Array.isArray(values.colors) ? values.colors : String(values.colors).split(",")).map((value) => String(value).trim()).filter(Boolean))];
     const dimensions = {};
     ["length", "width", "height"].forEach((key) => {
         if (values[key] !== undefined) { dimensions[key] = Number(values[key]); delete values[key]; }
@@ -75,6 +84,15 @@ const buildPublicFilter = async (query) => {
         const slugs = query.room.split(",").map(normalizeSlug).filter(Boolean);
         const matches = await roomModel.find({ slug: { $in: slugs }, status: true }).select("_id");
         filter.roomType = { $in: matches.map(({ _id }) => _id) };
+    }
+    if (query.color) {
+        const slugs = String(query.color).split(",").map(normalizeSlug).filter(Boolean);
+        const matches = await colorModel.find({ slug: { $in: slugs }, status: true }).select("_id name");
+        const legacyNames = matches.map(({ name }) => new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i"));
+        filter.$or = [
+            { colors: { $in: matches.map(({ _id }) => _id) } },
+            { $and: [{ $or: [{ colors: { $exists: false } }, { colors: { $size: 0 } }] }, { color: { $in: legacyNames } }] },
+        ];
     }
     const minimum = Number(query.minprice);
     const maximum = Number(query.maxprice);
@@ -151,6 +169,7 @@ export const create = async (req, res) => {
         if (!req.file) return sendBadRequest(res, "A product thumbnail is required");
         const referenceError = await validateReferences(values.category, values.roomType);
         if (referenceError) return sendBadRequest(res, referenceError);
+        if (values.colors !== undefined) { const colorError = await validateColorReferences(values.colors); if (colorError) return sendBadRequest(res, colorError); }
         if (await ProductModel.exists({ slug: values.slug })) return sendConflict(res, "A product already uses this slug");
         const thumbnail = getUploadMetadata(req.file);
         const product = await ProductModel.create({ ...values, title: values.title.trim(), thumbnail: thumbnail.url, thumbnailPublicId: thumbnail.publicId });
@@ -172,6 +191,7 @@ export const edit = async (req, res) => {
         const roomType = values.roomType || product.roomType.toString();
         const referenceError = await validateReferences(category, roomType);
         if (referenceError) return sendBadRequest(res, referenceError);
+        if (values.colors !== undefined) { const colorError = await validateColorReferences(values.colors, product.colors); if (colorError) return sendBadRequest(res, colorError); }
         if (values.dimensions) { product.dimensions = { ...product.dimensions, ...values.dimensions }; delete values.dimensions; }
         if (values.weight) { product.weight = { ...product.weight, ...values.weight }; delete values.weight; }
         Object.assign(product, values);

@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Hero from "@/components/website/store-components/Hero";
 import Left from "@/components/website/store-components/Left";
-import Righttop from "@/components/website/store-components/Righttop";
+import StoreSkeleton from "@/components/website/store-components/StoreSkeleton";
 
 export default function Layout({ children }) {
   return (
@@ -12,18 +12,14 @@ export default function Layout({ children }) {
 
         {/* Left Sidebar */}
         <aside className="w-full shrink-0 lg:sticky lg:top-20 lg:block lg:w-[280px]">
-          <Suspense fallback={null}>
+          <Suspense fallback={<StoreSkeleton sidebar/>}>
             <Left />
           </Suspense>
         </aside>
 
         {/* Right Content */}
         <main className="min-w-0 flex-1">
-          <Suspense fallback={null}>
-            <Righttop />
-          </Suspense>
-
-          <Suspense fallback={null}>
+          <Suspense fallback={<StoreSkeleton/>}>
             {children}
           </Suspense>
         </main>

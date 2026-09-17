@@ -114,6 +114,7 @@ const productSchema = new mongoose.Schema(
     color:{
         type: String,
       },
+    colors: [{ type: mongoose.Schema.Types.ObjectId, ref: "colors" }],
     
     dimensions: {
       length: Number,

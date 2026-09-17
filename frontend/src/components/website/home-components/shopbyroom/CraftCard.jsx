@@ -1,3 +1,5 @@
+import AppImage from "@/components/ui/AppImage";
+
 export default function CraftCard() {
   return (
     <div className="mt-10 grid grid-cols-1 gap-8 rounded-3xl bg-[#2B1F16] p-6 text-white sm:p-8 lg:mt-12 lg:grid-cols-6 lg:p-10">
@@ -54,7 +56,7 @@ export default function CraftCard() {
 
 
       <div className="overflow-hidden rounded-2xl lg:col-span-3">
-        <img
+        <AppImage
           src="https://images.unsplash.com/photo-1593071045469-a45708d54b3d?auto=format&fit=crop&w=800&q=80"
           alt="Nestro craftsmanship"
           className="h-64 w-full object-cover transition duration-500 hover:scale-105 sm:h-[320px]"

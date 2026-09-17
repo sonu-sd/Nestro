@@ -1,11 +1,12 @@
 import React from 'react'
+import AppImage from "@/components/ui/AppImage";
 
 export default function CategoryCard({image,name}) {
   return (
     <div className="group flex min-w-24 cursor-pointer flex-col items-center">
       {/* Image */}
       <div className="h-28 w-28 overflow-hidden rounded-full border border-[#e7ddd1]  hover:border-[#8B5E3C]">
-        <img
+        <AppImage
           src={image|| null}
           alt={name}
           className="h-full w-full object-cover transition duration-300 group-hover:scale-110"

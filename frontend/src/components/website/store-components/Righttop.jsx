@@ -3,12 +3,21 @@
 import { FiX } from "react-icons/fi";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-export default function Righttop() {
+export default function Righttop({ total = 0 }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const currentSort = searchParams.get("sort") || "featured";
+  const activeFilters = ["category", "room", "material", "color"].flatMap((key) => (searchParams.get(key)?.split(",").filter(Boolean) || []).map((value) => ({ key, value })));
+
+  const removeFilter = (key, value) => {
+    const params = new URLSearchParams(searchParams.toString());
+    const values = (params.get(key)?.split(",") || []).filter((item) => item !== value);
+    if (values.length) params.set(key, values.join(",")); else params.delete(key);
+    params.delete("page");
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
   const handleSort = (e) => {
     const value = e.target.value;
@@ -33,7 +42,7 @@ export default function Righttop() {
       {/* Left */}
       <div className="text-base sm:text-[18px]">
         <span className="font-semibold text-[#1E293B]">
-          128
+          {total}
         </span>
 
         <span className="text-gray-500 ml-1">
@@ -47,15 +56,7 @@ export default function Righttop() {
         {/* Active Filters */}
         <div className="flex max-w-full items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
 
-          <button className="flex items-center gap-1 bg-[#F5EDE5] text-[#8B5E3C] px-3 py-1 rounded-full text-sm hover:bg-[#EADBCB] transition">
-            Living Room
-            <FiX size={14} />
-          </button>
-
-          <button className="flex items-center gap-1 bg-[#F5EDE5] text-[#8B5E3C] px-3 py-1 rounded-full text-sm hover:bg-[#EADBCB] transition">
-            Solid Wood
-            <FiX size={14} />
-          </button>
+          {activeFilters.map(({ key, value }) => <button key={`${key}-${value}`} onClick={() => removeFilter(key, value)} className="flex items-center gap-1 bg-[#F5EDE5] text-[#8B5E3C] px-3 py-1 rounded-full text-sm hover:bg-[#EADBCB] transition">{value.replaceAll("-", " ")}<FiX size={14} /></button>)}
 
         </div>
 

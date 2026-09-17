@@ -1,6 +1,7 @@
 'use client';
+import AppImage from "@/components/ui/AppImage";
 
-import { useState} from 'react';
+import { useEffect, useState} from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Tag, Link2, Save } from 'lucide-react';
 import { client, generateSlug } from '@/utils/helper';
@@ -14,6 +15,8 @@ export default function EditForm({data,api,page}) {
         slug: data.slug || "",
         image:data.image || ""  
     });
+    const [preview, setPreview] = useState(data.image || "");
+    useEffect(() => () => { if (preview.startsWith("blob:")) URL.revokeObjectURL(preview); }, [preview]);
 
     const handleChange = ({ target }) => {
 
@@ -28,7 +31,10 @@ export default function EditForm({data,api,page}) {
 
 
     const imageHanlder = (event) => {
-        setFormData({ ...formData, image: event.target.files[0] })
+        const file = event.target.files?.[0];
+        if (!file) return;
+        setFormData({ ...formData, image: file });
+        setPreview(URL.createObjectURL(file));
     }
 
     const handleSubmit = async (e) => {
@@ -126,8 +132,8 @@ export default function EditForm({data,api,page}) {
 
                         <div >
                             {
-                                formData.image &&
-                                <img src={formData.image} className='w-20 h-10' alt="" />
+                                preview &&
+                                <AppImage src={preview} className='w-20 h-10' alt="Category preview" />
                             }
                             <p className="text-sm text-gray-400">
                                 Image upload will be added later

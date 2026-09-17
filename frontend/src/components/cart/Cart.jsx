@@ -1,4 +1,5 @@
 "use client";
+import AppImage from "@/components/ui/AppImage";
 
 import { decreaseQty, increaseQty, removeFromCrt } from "@/redux/features/Cartslice";import {
   FiMinus,
@@ -192,7 +193,7 @@ export default function Cart() {
 
                     <div className="relative h-48 w-full shrink-0 overflow-hidden rounded-xl bg-[#f3eee8] min-[460px]:h-32 min-[460px]:w-32 sm:h-36 sm:w-36">
 
-                      <img
+                      <AppImage
                         src={item.thumbnail}
                         alt={item.title || "Product"}
                         className="w-full h-full object-cover transition duration-500 group-hover:scale-105"

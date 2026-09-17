@@ -4,16 +4,18 @@ import {
     materialData,
     availabilityData,
 } from "./leftdata";
-import { fetchCategory, fetchRoom, fetchProduct } from '@/api/api';
+import { fetchCategory, fetchRoom, fetchProduct, fetchColor } from '@/api/api';
 import Stockfilter from './Stockfilter';
 import Filtersection from './Filtersection';
 import Pricefilter from './Pricefilter';
+import Colorfilter from './Colorfilter';
 
 
 export default async function Left() {
 
     const category_response = await fetchCategory();
     const room_response = await fetchRoom();
+    const color_response = await fetchColor();
 
     const categoriesWithCount = await Promise.all(
         category_response.data.map(async (item) => {
@@ -75,19 +77,7 @@ export default async function Left() {
                 queryKey="material"
                 data={materialData}
             />
-            {/* color */}
-            <div className="py-6 border-b border-[#E7DDD1] ">
-                <h3 className=" font-semibold text-[#1e1e1e] text-[13px]">Color</h3>
-
-                <div className="mt-4 flex flex-wrap gap-3">
-                    <div className="w-7 h-7 rounded-full bg-[#8B5E3C] border"></div>
-                    <div className="w-7 h-7 rounded-full bg-[#E7DDD1] border"></div>
-                    <div className="w-7 h-7 rounded-full bg-[#444] border"></div>
-                    <div className="w-7 h-7 rounded-full bg-[#F5F5F5] border"></div>
-                    <div className="w-7 h-7 rounded-full bg-[#9C6A42] border"></div>
-                    <div className="w-7 h-7 rounded-full bg-[#925727] border"></div>
-                </div>
-            </div>
+            <Colorfilter colors={color_response.data || []} />
 
 
             {/* Availability */}
