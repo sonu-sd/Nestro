@@ -154,11 +154,14 @@ export const getAdminOrders = async (req, res) => {
         const filter = {};
         if (req.query.status) filter.orderStatus = req.query.status;
         if (req.query.paymentStatus) filter.paymentStatus = req.query.paymentStatus;
-        const [data, total] = await Promise.all([
+        const [data, total, all, pending, revenue] = await Promise.all([
             OrderModel.find(filter).populate("user", "name email").sort({ placedAt: -1 }).skip((page - 1) * limit).limit(limit),
             OrderModel.countDocuments(filter),
+            OrderModel.countDocuments(),
+            OrderModel.countDocuments({ orderStatus: { $nin: ["DELIVERED", "CANCELLED"] } }),
+            OrderModel.aggregate([{ $match: { $or: [{ paymentStatus: "PAID" }, { paymentMethod: "COD", orderStatus: "DELIVERED" }] } }, { $group: { _id: null, total: { $sum: "$totalAmount" } } }]),
         ]);
-        return res.status(200).json({ success: true, message: "Orders found", data, total, page, limit, pages: Math.ceil(total / limit) });
+        return res.status(200).json({ success: true, message: "Orders found", data, total, page, limit, pages: Math.ceil(total / limit), summary: { all, pending, revenue: revenue[0]?.total || 0 } });
     } catch (error) { return sendServerError(res, error); }
 };
 

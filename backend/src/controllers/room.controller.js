@@ -12,12 +12,13 @@ const validateInput = ({ name, slug }) => {
 
 const sendList = async (req, res, includeInactive = false) => {
     const limit = parseBoundedNumber(req.query.limit, 100, 1, 100);
+    const page = parseBoundedNumber(req.query.page, 1, 1, 100000);
     const filter = includeInactive ? {} : { status: true };
     const [data, total] = await Promise.all([
-        roomModel.find(filter).sort({ name: 1 }).limit(limit),
+        roomModel.find(filter).sort({ name: 1 }).skip((page - 1) * limit).limit(limit),
         roomModel.countDocuments(filter),
     ]);
-    return res.status(200).json({ success: true, message: "Room types found", data, total });
+    return res.status(200).json({ success: true, message: "Room types found", data, total, page, pages: Math.ceil(total / limit) });
 };
 
 export const read = async (req, res) => {

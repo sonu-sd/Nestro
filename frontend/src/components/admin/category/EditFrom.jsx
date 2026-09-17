@@ -37,7 +37,7 @@ export default function EditForm({data,api,page}) {
             const payload = new FormData();
             payload.append("name", formData.name);
             payload.append("slug", formData.slug);
-            payload.append("image", formData.image);
+            if (formData.image instanceof File) payload.append("image", formData.image);
             const response = await client.put(api, payload);
             if (response.data.success) {
                 toast.success(response.data.message);
@@ -45,7 +45,7 @@ export default function EditForm({data,api,page}) {
             }
 
         } catch (error) {
-            toast.error(error.response.data.message || "Internal server error")
+            toast.error(error.response?.data?.message || "Unable to save changes")
         }
 
     };
@@ -55,10 +55,10 @@ export default function EditForm({data,api,page}) {
             {/* Heading */}
             <div>
                 <h1 className="text-2xl font-bold text-gray-900">
-                    Edit Category
+                    Edit {page.includes("room-type") ? "Room Type" : "Category"}
                 </h1>
                 <p className="text-sm text-gray-500 mt-1">
-                    Create a new product category for your store
+                    Update this catalog entry.
                 </p>
             </div>
 

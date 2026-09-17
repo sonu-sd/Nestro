@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { client } from "@/utils/helper";
-import { fetchProductById } from "@/api/api";
 import { toast } from 'sonner';
 
 // import { Target } from "lucide-react";
@@ -17,9 +16,9 @@ export default function AddProduct() {
         () => {
             const fetchAPI = async () => {
                 try {
-                    const product_response = await fetchProductById(product_id)
-                    if (product_response.success) {
-                        setproduct(product_response.data)
+                    const product_response = await client.get(`/product/admin/${product_id}`)
+                    if (product_response.data.success) {
+                        setproduct(product_response.data.data)
                     }
 
                 } catch (error) {
@@ -47,7 +46,7 @@ export default function AddProduct() {
             const response = await client.post(`product/add_images/${product_id}`, payload);
             if (response.data.success) {
                 toast.success(response.data.message);
-                router.push("/admin/products")
+                router.push(`/admin/products/${product_id}`)
             }
 
         }

@@ -26,7 +26,8 @@ const validateReferences = async (category, roomType) => {
 };
 
 const parseProductValues = (body) => {
-    const values = { ...body };
+    const allowed = ["title", "slug", "shortDescription", "description", "category", "roomType", "price", "salePrice", "discount", "stock", "material", "color", "length", "width", "height", "weight", "featured", "bestSeller", "newArrival", "status"];
+    const values = Object.fromEntries(allowed.filter((key) => body[key] !== undefined).map((key) => [key, body[key]]));
     ["price", "salePrice", "discount"].forEach((key) => {
         if (values[key] !== undefined) values[key] = Number(values[key]);
     });
@@ -34,18 +35,27 @@ const parseProductValues = (body) => {
         if (values[key] !== undefined) values[key] = parseBoolean(values[key]);
     });
     if (values.slug !== undefined) values.slug = normalizeSlug(values.slug);
+    const dimensions = {};
+    ["length", "width", "height"].forEach((key) => {
+        if (values[key] !== undefined) { dimensions[key] = Number(values[key]); delete values[key]; }
+    });
+    if (Object.keys(dimensions).length) values.dimensions = dimensions;
+    if (values.weight !== undefined) { values.weight = { value: Number(values.weight) }; }
     return values;
 };
 
 const validateProductValues = (values, isCreate = false) => {
     const required = ["title", "slug", "description", "category", "roomType", "price", "salePrice", "material"];
     if (isCreate && required.some((field) => values[field] === undefined || values[field] === "")) return "Required product fields are missing";
-    if (values.title !== undefined && values.title.trim().length < 2) return "Title must be at least 2 characters";
+    if (values.title !== undefined && (typeof values.title !== "string" || values.title.trim().length < 2)) return "Title must be at least 2 characters";
     if (values.slug !== undefined && !values.slug) return "Please provide a valid slug";
     if (values.material !== undefined && !MATERIALS.has(values.material)) return "Invalid material";
     if (values.price !== undefined && (!Number.isFinite(values.price) || values.price < 200)) return "Price must be at least 200";
     if (values.salePrice !== undefined && (!Number.isFinite(values.salePrice) || values.salePrice < 0)) return "Sale price must be zero or more";
     if (values.discount !== undefined && (!Number.isFinite(values.discount) || values.discount < 0 || values.discount > 100)) return "Discount must be between 0 and 100";
+    if (["stock", "featured", "bestSeller", "newArrival", "status"].some((key) => Object.hasOwn(values, key) && values[key] === undefined)) return "Invalid product setting";
+    if (values.dimensions && Object.values(values.dimensions).some((value) => !Number.isFinite(value) || value < 0)) return "Dimensions must be zero or more";
+    if (values.weight && (!Number.isFinite(values.weight.value) || values.weight.value < 0)) return "Weight must be zero or more";
     return null;
 };
 
@@ -98,9 +108,18 @@ export const read = async (req, res) => {
 
 export const readAdmin = async (req, res) => {
     try {
-        const limit = parseBoundedNumber(req.query.limit, 100, 1, 100);
-        const [data, total] = await Promise.all([ProductModel.find({}).populate(POPULATE).sort({ createdAt: -1 }).limit(limit), ProductModel.countDocuments()]);
-        return res.status(200).json({ success: true, message: "Products found", data, total });
+        const limit = parseBoundedNumber(req.query.limit, 20, 1, 100);
+        const page = parseBoundedNumber(req.query.page, 1, 1, 100000);
+        const query = String(req.query.search || "").trim().slice(0, 100);
+        const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const filter = query ? { $or: [{ title: { $regex: escaped, $options: "i" } }, { slug: { $regex: escaped, $options: "i" } }] } : {};
+        if (req.query.status === "active") filter.status = true;
+        if (req.query.status === "archived") filter.status = false;
+        const [data, total, all, active, outOfStock] = await Promise.all([
+            ProductModel.find(filter).populate(POPULATE).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit),
+            ProductModel.countDocuments(filter), ProductModel.countDocuments(), ProductModel.countDocuments({ status: true }), ProductModel.countDocuments({ stock: false }),
+        ]);
+        return res.status(200).json({ success: true, message: "Products found", data, total, page, limit, pages: Math.ceil(total / limit), summary: { all, active, archived: all - active, outOfStock } });
     } catch (error) { return sendServerError(res, error); }
 };
 
@@ -128,6 +147,7 @@ export const create = async (req, res) => {
         const values = parseProductValues(req.body);
         const validationError = validateProductValues(values, true);
         if (validationError) return sendBadRequest(res, validationError);
+        if (values.salePrice > values.price) return sendBadRequest(res, "Sale price cannot exceed regular price");
         if (!req.file) return sendBadRequest(res, "A product thumbnail is required");
         const referenceError = await validateReferences(values.category, values.roomType);
         if (referenceError) return sendBadRequest(res, referenceError);
@@ -146,11 +166,14 @@ export const edit = async (req, res) => {
         const values = parseProductValues(req.body);
         const validationError = validateProductValues(values);
         if (validationError) return sendBadRequest(res, validationError);
+        if ((values.salePrice ?? product.salePrice) > (values.price ?? product.price)) return sendBadRequest(res, "Sale price cannot exceed regular price");
         if (values.slug && values.slug !== product.slug && await ProductModel.exists({ slug: values.slug })) return sendConflict(res, "A product already uses this slug");
         const category = values.category || product.category.toString();
         const roomType = values.roomType || product.roomType.toString();
         const referenceError = await validateReferences(category, roomType);
         if (referenceError) return sendBadRequest(res, referenceError);
+        if (values.dimensions) { product.dimensions = { ...product.dimensions, ...values.dimensions }; delete values.dimensions; }
+        if (values.weight) { product.weight = { ...product.weight, ...values.weight }; delete values.weight; }
         Object.assign(product, values);
         if (values.title) product.title = values.title.trim();
         const thumbnail = getUploadMetadata(req.file);
@@ -158,7 +181,7 @@ export const edit = async (req, res) => {
         if (thumbnail.url) { product.thumbnail = thumbnail.url; product.thumbnailPublicId = thumbnail.publicId; }
         await product.save();
         await removeCloudinaryAssets([oldPublicId]);
-        return sendSuccess(res, "Product updated");
+        return res.status(200).json({ success: true, message: "Product updated", data: product });
     } catch (error) { return sendServerError(res, error); }
 };
 

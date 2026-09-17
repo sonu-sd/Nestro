@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
 import Adminaside from "@/components/admin/Adminaside";
 import Header from "@/components/admin/Header";
+import AdminGate from "@/components/admin/AdminGate";
 import { Toaster} from 'sonner'
 
 // Admin screens depend on live backend data and must not be prerendered at build time.
@@ -31,7 +32,7 @@ export default function RootLayout({ children }) {
     >
       <body >
 
-        <div className="flex min-h-screen w-full bg-white pb-20 md:pb-0">
+        <AdminGate><div className="flex min-h-screen w-full bg-white pb-20 md:pb-0">
         <Toaster position="top-center" richColors/>
           <Adminaside />
           <div className="min-w-0 flex-1">
@@ -39,7 +40,7 @@ export default function RootLayout({ children }) {
             {children}
           </div>
 
-        </div>
+        </div></AdminGate>
       </body>
     </html>
   );

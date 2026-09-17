@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
     MoreVertical,
     Pencil,
@@ -23,15 +24,18 @@ export default function ActionDropdown({
     const router = useRouter();
 
     const [open, setOpen] = useState(false);
+    const [position, setPosition] = useState({ top: 0, left: 0 });
 
     const dropdownRef = useRef(null);
+    const menuRef = useRef(null);
 
     useEffect(() => {
 
         function handler(e) {
             if (
                 dropdownRef.current &&
-                !dropdownRef.current.contains(e.target)
+                !dropdownRef.current.contains(e.target) &&
+                !menuRef.current?.contains(e.target)
             ) {
                 setOpen(false);
             }
@@ -101,7 +105,7 @@ export default function ActionDropdown({
             icon: ImagePlus,
             className: 'text-green-600',
             onClick: () => {
-                router.push(`products/add-images/${id}`)
+                router.push(`/admin/products/add-images/${id}`)
             },
         },
 
@@ -119,7 +123,7 @@ export default function ActionDropdown({
             icon: Eye,
             className: 'text-orange-600',
             onClick: () => {
-                console.log(`View ${module}`, id);
+                router.push(`/admin/products/${id}`);
             },
         },
     };
@@ -130,14 +134,20 @@ export default function ActionDropdown({
             className="relative inline-block text-left"
         >
             <button
-                onClick={() => setOpen(!open)}
+                onClick={(event) => {
+                    const rect = event.currentTarget.getBoundingClientRect();
+                    setPosition({ top: rect.bottom + 6, left: Math.max(8, rect.right - 192) });
+                    setOpen(!open);
+                }}
+                aria-label="Product actions"
+                aria-expanded={open}
                 className="p-2 rounded-lg hover:bg-gray-100 transition"
             >
                 <MoreVertical className="w-5 h-5 text-gray-600" />
             </button>
 
-            {open && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl border border-gray-100 shadow-lg overflow-hidden z-50">
+            {open && createPortal(
+                <div ref={menuRef} style={position} className="fixed w-48 bg-white rounded-xl border border-gray-100 shadow-lg overflow-hidden z-[100]">
 
                     {actions.map((action) => {
 
@@ -168,7 +178,7 @@ export default function ActionDropdown({
 
                     })}
 
-                </div>
+                </div>, document.body
             )}
         </div>
     );

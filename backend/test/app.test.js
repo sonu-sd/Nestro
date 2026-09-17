@@ -5,6 +5,7 @@ import app from "../src/app.js";
 import cloudinary from "../src/config/cloudinary.js";
 import { validateEnvironment } from "../src/config/env.js";
 import { uploadBufferToCloudinary } from "../src/middleware/upload.js";
+import { authorized } from "../src/middleware/auth.js";
 
 let server;
 let baseUrl;
@@ -43,6 +44,30 @@ test("unknown routes return a traceable 404 response", async () => {
     assert.equal(response.status, 404);
     assert.equal(body.success, false);
     assert.ok(body.requestId);
+});
+
+test("admin product endpoints reject requests without a session", async () => {
+    for (const [method, path] of [
+        ["GET", "/api/product/admin"],
+        ["GET", "/api/product/admin/507f1f77bcf86cd799439011"],
+        ["PUT", "/api/product/edit/507f1f77bcf86cd799439011"],
+        ["PATCH", "/api/product/update-flag/507f1f77bcf86cd799439011"],
+    ]) {
+        const response = await fetch(`${baseUrl}${path}`, { method });
+        assert.equal(response.status, 401, `${method} ${path} should require authentication`);
+    }
+});
+
+test("admin role guard rejects regular users and accepts admins", () => {
+    const guard = authorized("admin", "superAdmin");
+    let status;
+    let nextCalled = false;
+    const res = { status(code) { status = code; return this; }, json() { return this; } };
+    guard({ user: { role: "user" } }, res, () => { nextCalled = true; });
+    assert.equal(status, 403);
+    assert.equal(nextCalled, false);
+    guard({ user: { role: "admin" } }, res, () => { nextCalled = true; });
+    assert.equal(nextCalled, true);
 });
 
 test("Cloudinary v2 upload wrapper preserves secure asset metadata", async () => {

@@ -12,12 +12,13 @@ const validateInput = ({ name, slug }) => {
 
 const sendList = async (req, res, includeInactive = false) => {
     const limit = parseBoundedNumber(req.query.limit, 100, 1, 100);
+    const page = parseBoundedNumber(req.query.page, 1, 1, 100000);
     const filter = includeInactive ? {} : { status: true };
     const [data, total] = await Promise.all([
-        categoryModel.find(filter).sort({ name: 1 }).limit(limit),
+        categoryModel.find(filter).sort({ name: 1 }).skip((page - 1) * limit).limit(limit),
         categoryModel.countDocuments(filter),
     ]);
-    return res.status(200).json({ success: true, message: "Categories found", data, total });
+    return res.status(200).json({ success: true, message: "Categories found", data, total, page, pages: Math.ceil(total / limit) });
 };
 
 export const read = async (req, res) => {

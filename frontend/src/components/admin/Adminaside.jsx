@@ -11,7 +11,6 @@ import {
   ChartColumnStacked,
   ShoppingCart,
   BedDouble,
-  Palette,
   PackageCheck,
 } from 'lucide-react'
 
@@ -44,11 +43,6 @@ export default function Adminaside() {
       name: "Rooms",
       path: "/admin/room-type",
       icon: BedDouble,
-    },
-    {
-      name: "Colors",
-      path: "/admin/colors",
-      icon: Palette,
     },
   ]
 

@@ -1,7 +1,6 @@
-import React from 'react'
+import { redirect } from "next/navigation";
 
-export default function page() {
-  return (
-    <div> colors page</div>
-  )
+// Colors are currently a product field, not a standalone catalog entity.
+export default function ColorsPage() {
+  redirect("/admin/products");
 }
