@@ -47,6 +47,15 @@ test("unknown routes return a traceable 404 response", async () => {
     assert.ok(body.requestId);
 });
 
+test("Razorpay webhook rejects requests without a valid signature", async () => {
+    const response = await fetch(`${baseUrl}/api/order/razorpay/webhook`, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-razorpay-signature": "0".repeat(64) },
+        body: JSON.stringify({ event: "payment.captured" }),
+    });
+    assert.equal(response.status, 401);
+});
+
 test("admin product endpoints reject requests without a session", async () => {
     for (const [method, path] of [
         ["GET", "/api/product/admin"],
@@ -130,10 +139,11 @@ test("production startup requires every external service configuration", () => {
         CLOUD_NAME: "cloud-name",
         CLOUDINARY_API_KEY: "api-key",
         CLOUDINARY_SECRET_KEY: "api-secret",
-        EMAIL_USER: "noreply@example.test",
-        EMAIL_PASS: "email-password",
+        BREVO_API_KEY: "test-api-key",
+        BREVO_SENDER_EMAIL: "noreply@example.test",
         RAZORPAY_KEY_ID: "rzp_test_key",
         RAZORPAY_KEY_SECRET: "razorpay-secret",
+        RAZORPAY_WEBHOOK_SECRET: "webhook-secret",
     };
 
     assert.doesNotThrow(() => validateEnvironment(productionEnvironment));

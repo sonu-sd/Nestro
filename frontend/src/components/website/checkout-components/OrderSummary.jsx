@@ -57,7 +57,6 @@ export default function OrderSummary({ selectedAddressId, paymentMethod }) {
         return;
       }
 
-      if (!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID) throw new Error("Online payments are not configured yet.");
       const response = await client.post("/order/online", { addressId: selectedAddressId });
       if (!(await loadRazorpayCheckout())) throw new Error("Unable to load secure payment checkout.");
       const payment = response.data.data;

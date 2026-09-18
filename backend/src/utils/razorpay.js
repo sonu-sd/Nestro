@@ -19,3 +19,11 @@ export const createRazorpayOrder = async ({ amount, receipt, notes }) => {
 };
 
 export const getRazorpayKeyId = () => getCredentials().keyId;
+
+export const getRazorpayPayment = async (paymentId) => {
+    const { keyId, keySecret } = getCredentials();
+    const response = await axios.get(`https://api.razorpay.com/v1/payments/${encodeURIComponent(paymentId)}`, {
+        auth: { username: keyId, password: keySecret }, timeout: 15000,
+    });
+    return response.data;
+};

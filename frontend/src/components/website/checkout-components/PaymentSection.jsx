@@ -61,7 +61,6 @@ export default function PaymentSection({ paymentMethod, onPaymentMethodChange })
         })}
       </div>
 
-      {paymentMethod === "ONLINE" && !process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID && <p className="mt-4 text-xs text-amber-700">Online payments are not configured yet.</p>}
     </section>
   );
 }

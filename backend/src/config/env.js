@@ -8,10 +8,11 @@ const productionRequiredVariables = [
     "CLOUD_NAME",
     "CLOUDINARY_API_KEY",
     "CLOUDINARY_SECRET_KEY",
-    "EMAIL_USER",
-    "EMAIL_PASS",
+    "BREVO_API_KEY",
+    "BREVO_SENDER_EMAIL",
     "RAZORPAY_KEY_ID",
     "RAZORPAY_KEY_SECRET",
+    "RAZORPAY_WEBHOOK_SECRET",
 ];
 
 export const validateEnvironment = (environment = process.env) => {

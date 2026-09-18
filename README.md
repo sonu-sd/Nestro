@@ -10,7 +10,9 @@ Nestro is a furniture storefront with a Next.js frontend and an Express/MongoDB 
 4. Start the API with `npm run dev` from `backend` (port `5000`).
 5. Start the storefront with `npm run dev` from `frontend` (port `3000`).
 
-The frontend API URL must include `/api`, for example `http://localhost:5000/api`.
+Set `API_ORIGIN` in `frontend/.env.local` to the backend origin without `/api` (for example `http://localhost:5000`). Browser API calls use the frontend's `/api` proxy so authentication cookies work on the same origin.
+
+To prepare an Atlas database without migrating local data, see the seed instructions in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Run `npm run seed:atlas` from `backend` for a database-free validation preview.
 
 ## Checks
 

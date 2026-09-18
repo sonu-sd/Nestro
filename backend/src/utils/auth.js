@@ -17,7 +17,7 @@ export const getOtpExpiry = () => {
 
 export const getCookieOptions = () => {
     const isProduction = process.env.NODE_ENV === "production";
-    const sameSite = process.env.COOKIE_SAME_SITE || (isProduction ? "none" : "lax");
+    const sameSite = process.env.COOKIE_SAME_SITE || "lax";
 
     return {
         httpOnly: true,

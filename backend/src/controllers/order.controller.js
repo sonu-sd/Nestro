@@ -6,7 +6,7 @@ import categoryModel from "../models/category.model.js";
 import roomModel from "../models/room.model.js";
 import userModel from "../models/user.model.js";
 import { isValidId, parseBoundedNumber } from "../utils/catalog.js";
-import { createRazorpayOrder, getRazorpayKeyId } from "../utils/razorpay.js";
+import { createRazorpayOrder, getRazorpayKeyId, getRazorpayPayment } from "../utils/razorpay.js";
 import { sendBadRequest, sendNotFound, sendServerError } from "../utils/response.js";
 
 const SHIPPING_CHARGE = 49;
@@ -104,12 +104,41 @@ export const verifyOnlinePayment = async (req, res) => {
         const expectedSignature = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET).update(`${razorpayOrderId}|${razorpayPaymentId}`).digest("hex");
         const signatureMatches = expectedSignature.length === razorpaySignature.length && crypto.timingSafeEqual(Buffer.from(expectedSignature), Buffer.from(razorpaySignature));
         if (!signatureMatches) return sendBadRequest(res, "Payment signature verification failed");
+        const payment = await getRazorpayPayment(razorpayPaymentId);
+        if (payment.order_id !== order.paymentOrderId || payment.amount !== order.totalAmount * 100 || payment.currency !== "INR") {
+            return sendBadRequest(res, "Payment details do not match the order");
+        }
+        if (payment.status !== "captured") return res.status(409).json({ success: false, message: "Payment is awaiting capture. Please check your orders shortly." });
         order.paymentStatus = "PAID";
         order.paymentId = razorpayPaymentId;
         order.orderStatus = "CONFIRMED";
         await order.save();
         await cartModel.updateOne({ userId: req.user.id }, { $set: { items: [] } });
         return res.status(200).json({ success: true, message: "Payment verified and order confirmed", data: order });
+    } catch (error) { return sendServerError(res, error); }
+};
+
+export const razorpayWebhook = async (req, res) => {
+    try {
+        const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+        const signature = req.get("x-razorpay-signature") || "";
+        if (!secret || !Buffer.isBuffer(req.body) || !/^[a-f0-9]{64}$/i.test(signature)) return res.sendStatus(401);
+        const expected = crypto.createHmac("sha256", secret).update(req.body).digest("hex");
+        if (!crypto.timingSafeEqual(Buffer.from(signature, "hex"), Buffer.from(expected, "hex"))) return res.sendStatus(401);
+        const event = JSON.parse(req.body.toString("utf8"));
+        if (event.event !== "payment.captured") return res.sendStatus(200);
+        const payment = event.payload?.payment?.entity;
+        if (!payment?.order_id || !payment?.id || payment.status !== "captured") return res.sendStatus(200);
+        const order = await OrderModel.findOne({ paymentOrderId: payment.order_id, paymentMethod: "ONLINE" });
+        if (!order || payment.amount !== order.totalAmount * 100 || payment.currency !== "INR") return res.sendStatus(200);
+        if (order.paymentStatus !== "PAID") {
+            order.paymentStatus = "PAID";
+            order.paymentId = payment.id;
+            order.orderStatus = "CONFIRMED";
+            await order.save();
+            await cartModel.updateOne({ userId: order.user }, { $pull: { items: { productId: { $in: order.items.map((item) => item.product_id) } } } });
+        }
+        return res.sendStatus(200);
     } catch (error) { return sendServerError(res, error); }
 };
 
