@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f4f0eb;
+  --foreground: #29211b;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+}
+
+button,
+a,
+summary {
+  -webkit-tap-highlight-color: transparent;
+}
+summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Admin uses the same warm neutrals and walnut accents as the storefront. */
+.admin-theme {
+  background: #efece6;
+  color: #1e1e1e;
+}
+.admin-theme .admin-shell,
+.admin-theme .admin-page {
+  background: #efece6;
+  color: #1e1e1e;
+  min-height: 100vh;
+}
+.admin-theme .admin-card {
+  background: #fffdf9;
+  border: 1px solid #e8ddd3;
+  border-radius: 1rem;
+  box-shadow: 0 8px 30px rgba(66, 44, 30, 0.045);
+}
+.admin-theme .admin-eyebrow {
+  color: #8b5e3c;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.admin-theme .admin-input {
+  width: 100%;
+  border: 1px solid #dccdbd;
+  border-radius: 0.65rem;
+  background: #fff;
+  padding: 0.7rem 0.85rem;
+  outline: none;
+}
+.admin-theme .admin-input:focus {
+  border-color: #8b5e3c;
+  box-shadow: 0 0 0 2px #e9d5bf;
+}
+.admin-theme .admin-primary {
+  border-radius: 0.65rem;
+  background: #8b5e3c;
+  color: white;
+  font-weight: 600;
+}
+.admin-theme .admin-primary:hover {
+  background: #6c482f;
+}
+.admin-theme .admin-secondary {
+  border: 1px solid #dccdbd;
+  border-radius: 0.65rem;
+  background: #fffdf9;
+  color: #6c482f;
+}
+.admin-theme .admin-link {
+  color: #8b5e3c;
+  font-weight: 600;
+}
+.admin-theme .admin-skeleton {
+  border-radius: 0.6rem;
+  background: linear-gradient(90deg, #e9dfd3 25%, #f7f0e8 50%, #e9dfd3 75%);
+  background-size: 200% 100%;
+  animation: admin-shimmer 1.5s ease-in-out infinite;
+}
+@keyframes admin-shimmer {
+  to {
+    background-position-x: -200%;
+  }
+}
+.admin-theme .bg-slate-50,
+.admin-theme .bg-gray-50 {
+  background-color: #efece6;
+}
+.admin-theme .bg-white {
+  background-color: #fffdf9;
+}
+.admin-theme .border-slate-200,
+.admin-theme .border-gray-200 {
+  border-color: #e8ddd3;
+}
+.admin-theme .text-teal-700,
+.admin-theme .text-teal-600 {
+  color: #8b5e3c;
+}
+.admin-theme .bg-teal-700,
+.admin-theme .bg-teal-600 {
+  background-color: #8b5e3c;
+}
+.admin-theme .bg-teal-700:hover,
+.admin-theme .bg-teal-600:hover {
+  background-color: #6c482f;
+}
+.admin-theme [class*="bg-[#1a2e43]"] {
+  background-color: #3b2b20;
+}
+.admin-theme [class*="bg-[#132437]"] {
+  background-color: #2d211a;
+}
+.admin-theme [class*="bg-sky-600"],
+.admin-theme [class*="bg-sky-500"] {
+  background-color: #8b5e3c;
+}
